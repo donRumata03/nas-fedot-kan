@@ -71,3 +71,13 @@ def skip_has_no_pools(graph: NasGraph):
         if cond:
             raise ValueError(f'{ERROR_PREFIX} pooling in skip connection may lead to dimension conflict.')
     return True
+
+
+def filter_size_increases_monotonically(graph: NasGraph):
+    for node in graph.nodes:
+        if 'conv' in node.content['name']:
+            for successor in node.nodes_from:
+                if 'conv' in successor.content['name']:
+                    if node.content['parameters']['kernel_size'] > successor.content['parameters']['kernel_size']:
+                        raise ValueError(f'{ERROR_PREFIX} filter size must increase monotonically.')
+    return True
