@@ -76,7 +76,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         opt_epochs = self._requirements.opt_epochs
 
         # opt_data, val_data = train_test_data_setup(train_data, stratify=train_data.target)
-        opt_dataset = DataLoader(self._dataset_builder.build(train_data), batch_size=batch_size, shuffle=shuffle_flag)
+        opt_dataset = DataLoader(self._dataset_builder.build(train_data), batch_size=batch_size, shuffle=shuffle_flag, num_workers=8)
         # val_dataset = DataLoader(self._dataset_builder.build(val_data), batch_size=batch_size, shuffle=shuffle_flag)
 
         input_shape = self._requirements.model_requirements.input_shape
@@ -92,7 +92,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         complexity_matrics = [m(graph) for _, m in self._objective.complexity_metrics.items()]
         test_dataset = DataLoader(self._dataset_builder.build(test_data),
                                   batch_size=self._requirements.model_requirements.batch_size,
-                                  shuffle=False)
+                                  shuffle=False, num_workers=8)
         eval_metrics = fitted_model.validate(test_dataset)
         eval_metrics = [m for m in eval_metrics.values()]
         return to_fitness([*eval_metrics, *complexity_matrics], self._objective.is_multi_objective)
