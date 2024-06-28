@@ -48,7 +48,7 @@ def build_mnist_cls(save_path=None):
     batch_size = 64
     epochs = 3
     optimization_epochs = 1
-    num_of_generations = 2
+    num_of_generations = 3
     population_size = 3
 
     set_root(project_root())
@@ -91,7 +91,8 @@ def build_mnist_cls(save_path=None):
                                                            timeout=datetime.timedelta(hours=3),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
-                                                           early_stopping_timeout=10000000000000000000000000000000000., # TODO: fix datatype bug in GOLEM
+                                                           early_stopping_timeout=10000000000000000000000000000000000.,
+                                                           # TODO: fix datatype bug in GOLEM
                                                            parallelization_mode='sequential',
                                                            n_jobs=1,
                                                            cv_folds=cv_folds)
@@ -105,9 +106,13 @@ def build_mnist_cls(save_path=None):
     model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel, device='cuda',
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
-    validation_rules = [model_has_several_starts, model_has_no_conv_layers, model_has_wrong_number_of_flatten_layers,
-                        model_has_several_roots,
-                        has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch]
+    validation_rules = [
+        filter_size_increases_monotonically,
+        no_linear_layers_before_flatten,
+        model_has_several_starts, model_has_no_conv_layers, model_has_wrong_number_of_flatten_layers,
+        model_has_several_roots,
+        has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
+    ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
                                                  mutation_types=mutations,

@@ -1,9 +1,11 @@
-from typing import Union, Dict
+from typing import Union, Dict, Sequence
 
 import torch.nn as nn
 from golem.core.dag.graph_node import GraphNode
 
 from nas.graph.node.nas_graph_node import NasNode
+from nas.model.pytorch.layers.kan_convolutional.KANConv import KAN_Convolutional_Layer
+from nas.model.pytorch.layers.kan_convolutional.KANLinear import KANLinear
 
 
 def conv2d(node: NasNode, **inputs_dict):
@@ -12,10 +14,23 @@ def conv2d(node: NasNode, **inputs_dict):
     """
     input_dim = inputs_dict.get('input_dim')
     out_shape = node.parameters.get('out_shape')
+    # Check the out_shape % input_dim == 0:
+    print(input_dim, out_shape, out_shape % input_dim == 0)
+    if out_shape % input_dim != 0:
+        print("FAIL")
+
     kernel_size = node.parameters.get('kernel_size')
     stride = node.parameters.get('stride', 1)
     padding = node.parameters.get('padding')
     return nn.Conv2d(input_dim, out_shape, kernel_size, stride, padding)
+    # if isinstance(padding, Sequence):
+    #     padding = padding[0]
+    # return KAN_Convolutional_Layer(
+    #     n_convs=out_shape // input_dim,
+    #     kernel_size=(kernel_size, kernel_size),
+    #     stride=(stride, stride),
+    #     padding=(padding, padding)
+    # )
 
 
 def linear(node: NasNode, **inputs_dict):
@@ -24,7 +39,8 @@ def linear(node: NasNode, **inputs_dict):
     """
     input_dim = inputs_dict.get('input_dim')
     out_shape = node.parameters.get('out_shape')
-    return nn.Linear(input_dim, out_shape)
+    # return nn.Linear(input_dim, out_shape)
+    return KANLinear(in_features=input_dim, out_features=out_shape)
 
 
 def dropout(node: NasNode, **kwargs):

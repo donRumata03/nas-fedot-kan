@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import log2
-from typing import List, Optional, Union, Tuple, Sequence, Collection
+from typing import List, Optional, Union, Tuple, Collection
 
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.genetic.operators.mutation import MutationStrengthEnum
@@ -167,6 +167,35 @@ class ConvRequirements(BaseLayerRequirements):
     def force_conv_params(self, stride: int) -> ConvRequirements:
         self.conv_strides = [[stride, stride]]
         return self
+
+
+@dataclass
+class KANSplineRequirements:
+    grid_size: int = 5
+    spline_order: int = 3
+    scale_noise: float = 0.1
+    scale_base: float = 1.0
+    scale_spline: float = 1.0
+    enable_standalone_scale_spline: bool = True
+    base_activation: str = "SiLU"
+    grid_eps: float = 0.02
+    grid_range: List[float] = (-1, 1)
+
+
+@dataclass
+class KANLinearRequirements(KANSplineRequirements):
+    min_out_features: int = 32
+    max_out_features: int = 256
+
+
+@dataclass
+class KANConvRequirements(KANSplineRequirements):
+    min_n_convs: int = 1
+    max_n_convs: int = 4
+    kernel_size: List[int] = (2, 2)
+    stride: List[int] = (1, 1)
+    padding: List[int] = (0, 0)
+    dilation: List[int] = (1, 1)
 
 
 @dataclass

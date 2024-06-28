@@ -8,10 +8,8 @@ from nas.repository.layer_types_enum import LayersPoolEnum
 
 random.seed(1)
 
-
 if TYPE_CHECKING:
     from nas.composer.requirements import ModelRequirements
-
 
 random.seed(1)
 
@@ -31,6 +29,7 @@ class NasNodeFactory:
 
     def get_node_params(self, node_name: LayersPoolEnum, **params):
         supportable_nodes = {'conv2d': self.conv2d,
+                             'kan_conv2d': self.kan_conv2d,
                              'linear': self.linear,
                              'dropout': self.dropout,
                              'pooling2d': self.pooling,
@@ -54,6 +53,28 @@ class NasNodeFactory:
 
     @staticmethod
     def conv2d(requirements: ModelRequirements = None, **kwargs) -> Dict:
+        params = {}
+        if requirements is not None:
+            out_shape = random.choice(requirements.conv_requirements.neurons_num)
+            kernel_size = random.choice(requirements.conv_requirements.kernel_size)
+            activation = random.choice(requirements.fc_requirements.activation_types).value
+            stride = random.choice(requirements.conv_requirements.conv_strides)
+            padding = _get_padding(random.choice(requirements.conv_requirements.padding), kernel_size)
+        else:
+            out_shape = kwargs.get('out_shape')
+            kernel_size = kwargs.get('kernel_size')
+            activation = kwargs.get('activation', 'relu')
+            stride = kwargs.get('stride', [1, 1])
+            padding = kwargs.get('padding', 0)
+        params['out_shape'] = out_shape
+        params['kernel_size'] = kernel_size
+        params['activation'] = activation
+        params['stride'] = stride
+        params['padding'] = padding
+        return params
+
+    @staticmethod
+    def kan_conv2d(requirements: ModelRequirements = None, **kwargs) -> Dict:
         params = {}
         if requirements is not None:
             out_shape = random.choice(requirements.conv_requirements.neurons_num)

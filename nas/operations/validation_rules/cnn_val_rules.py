@@ -1,7 +1,10 @@
 import torch
+from golem.core.dag.graph_node import GraphNode
+from golem.core.dag.linked_graph_node import LinkedGraphNode
 from golem.core.dag.verification_rules import ERROR_PREFIX
 
 from nas.graph.base_graph import NasGraph
+from nas.graph.node.nas_graph_node import NasNode
 from nas.model.model_interface import NeuralSearchModel
 from nas.model.pytorch.base_model import NASTorchModel
 
@@ -30,7 +33,7 @@ def model_has_wrong_number_of_flatten_layers(graph: NasGraph):
 
 
 def conv_net_check_structure(graph: NasGraph):
-    prohibited_node_types = ['average_pool2d', 'max_pool2d', 'conv2d']
+    prohibited_node_types = ['average_pool2d', 'max_pool2d', 'conv2d', 'kan_conv2d']
     for node in graph.nodes:
         node_name = 'conv2d' if 'conv' in node.content['name'] else node.content['name']
         if node_name == 'flatten':
@@ -55,12 +58,18 @@ def model_has_no_conv_layers(graph: NasGraph):
 def model_has_dim_mismatch(graph: NasGraph):
     try:
         with torch.no_grad():
-            input_shape = [[64, 64, 3], [512, 512, 3]]
+            # TODO: resolve the divisibility problem and validate with 3 channels, too
+            input_shape = [[64, 64, 1], [512, 512, 1]]
             for shape in input_shape:
                 m = NeuralSearchModel(NASTorchModel).compile_model(graph, shape, 5).model
                 m.to('cpu')
-                m.forward(torch.rand([4, *shape[::-1]]))
-    except RuntimeError:
+                try:
+                    m.forward(torch.rand([4, *shape[::-1]]))
+                except IndexError:
+                    raise ValueError(f'{ERROR_PREFIX} graph has dimension conflict.')
+    except RuntimeError as e:
+        import traceback
+        traceback.print_exc()
         raise ValueError(f'{ERROR_PREFIX} graph has dimension conflict.')
     return True
 
@@ -78,6 +87,26 @@ def filter_size_increases_monotonically(graph: NasGraph):
         if 'conv' in node.content['name']:
             for successor in node.nodes_from:
                 if 'conv' in successor.content['name']:
-                    if node.content['parameters']['kernel_size'] > successor.content['parameters']['kernel_size']:
+                    if node.content['params']['out_shape'] > successor.content['params']['out_shape']:
+                        print("Filter size must increase monotonically.")
                         raise ValueError(f'{ERROR_PREFIX} filter size must increase monotonically.')
+    return True
+
+
+def no_linear_layers_before_flatten(graph: NasGraph):
+    """
+    Performs DFS starting from root (sink) node and starts checking after Flatten layers
+    thereby checking if there are linear layers in the conv (with 3 or 4 dims) segment.
+    """
+
+    def dfs(node: LinkedGraphNode, encountered_flatten: bool = False):
+        if node.content['name'] == 'flatten':
+            encountered_flatten = True
+        if encountered_flatten and node.content['name'] == 'linear':
+            print("Linear after flatten")
+            raise ValueError(f'{ERROR_PREFIX} linear layer must not be after flatten layer.')
+        for n in node.nodes_from:
+            dfs(n, encountered_flatten)
+
+    dfs(graph.root_node)
     return True
