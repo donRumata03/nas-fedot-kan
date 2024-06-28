@@ -66,9 +66,9 @@ def build_mnist_cls(save_path=None):
 
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              # TODO: is that about fc layers in the classification head or also about conv layer interjections?
-                                                             max_number_of_neurons=256)
+                                                             max_number_of_neurons=128)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=16, max_number_of_neurons=128,
+        min_number_of_neurons=4, max_number_of_neurons=64,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 

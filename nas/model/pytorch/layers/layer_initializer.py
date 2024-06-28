@@ -23,15 +23,15 @@ def conv2d(node: NasNode, **inputs_dict):
     kernel_size = node.parameters.get('kernel_size')
     stride = node.parameters.get('stride', 1)
     padding = node.parameters.get('padding')
-    return nn.Conv2d(input_dim, out_shape, kernel_size, stride, padding)
-    # if isinstance(padding, Sequence):
-    #     padding = padding[0]
-    # return KAN_Convolutional_Layer(
-    #     n_convs=out_shape // input_dim,
-    #     kernel_size=(kernel_size, kernel_size),
-    #     stride=(stride, stride),
-    #     padding=(padding, padding)
-    # )
+    # return nn.Conv2d(input_dim, out_shape, kernel_size, stride, padding)
+    if isinstance(padding, Sequence):
+        padding = padding[0]
+    return KAN_Convolutional_Layer(
+        n_convs=out_shape // input_dim,
+        kernel_size=(kernel_size, kernel_size),
+        stride=(stride, stride),
+        padding=(padding, padding)
+    )
 
 
 def linear(node: NasNode, **inputs_dict):
