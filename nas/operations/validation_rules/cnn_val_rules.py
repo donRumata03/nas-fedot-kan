@@ -83,13 +83,22 @@ def skip_has_no_pools(graph: NasGraph):
 
 
 def filter_size_increases_monotonically(graph: NasGraph):
-    for node in graph.nodes:
+    """
+    Performs DFS starting from root (sink) node back to the source node while
+    maintaining last filter size of the conv layers on the path
+    thereby ensuring that filter size increases (non-strictly) monotonically.
+    """
+
+    def dfs(node: LinkedGraphNode, last_filter_size: int = None):
         if 'conv' in node.content['name']:
-            for successor in node.nodes_from:
-                if 'conv' in successor.content['name']:
-                    if node.content['params']['out_shape'] > successor.content['params']['out_shape']:
-                        print("Filter size must increase monotonically.")
-                        raise ValueError(f'{ERROR_PREFIX} filter size must increase monotonically.')
+            if last_filter_size is not None and node.content['params']['out_shape'] > last_filter_size:
+                print("Filter size must increase monotonically.")
+                raise ValueError(f'{ERROR_PREFIX} filter size must increase monotonically.')
+            last_filter_size = node.content['params']['out_shape']
+        for n in node.nodes_from:
+            dfs(n, last_filter_size)
+
+    dfs(graph.root_node)
     return True
 
 

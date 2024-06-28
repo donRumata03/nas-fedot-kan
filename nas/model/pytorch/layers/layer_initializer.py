@@ -18,6 +18,7 @@ def conv2d(node: NasNode, **inputs_dict):
     print(input_dim, out_shape, out_shape % input_dim == 0)
     if out_shape % input_dim != 0:
         print("FAIL")
+        raise ValueError(f'out_shape must be divisible by input_dim')
 
     kernel_size = node.parameters.get('kernel_size')
     stride = node.parameters.get('stride', 1)

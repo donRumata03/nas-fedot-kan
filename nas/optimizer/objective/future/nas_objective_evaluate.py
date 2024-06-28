@@ -42,7 +42,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         self._log = default_log(self)
 
     def evaluate(self, graph: NasGraph) -> Fitness:
-        # return SingleObjFitness(0)
+        return SingleObjFitness(0)
         fold_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             gc.collect()

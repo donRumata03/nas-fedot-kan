@@ -30,10 +30,10 @@ def _add_skip_connections(graph: NasGraph, params):
 
 class ConvGraphMaker(GraphGenerator):
     def __init__(self, requirements: ModelRequirements,
-                 initial_struct: Optional[List] = None, max_generation_attempts: int = 100):
+                 initial_struct: Optional[List] = None, max_generation_attempts: int = 100, rules=None):
         self._initial_struct = initial_struct
         self._requirements = requirements
-        self._rules = [model_has_dim_mismatch]
+        self._rules = rules or [model_has_dim_mismatch]
         self._generation_attempts = max_generation_attempts
 
     @property

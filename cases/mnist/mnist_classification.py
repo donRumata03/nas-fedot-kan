@@ -126,7 +126,7 @@ def build_mnist_cls(save_path=None):
                                                                           DefaultChangeAdvisor()))
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
-    builder = ConvGraphMaker(requirements=requirements.model_requirements)
+    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules)
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
 
