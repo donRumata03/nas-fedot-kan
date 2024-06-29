@@ -22,7 +22,6 @@ class KAN_Convolutional_Layer(torch.nn.Module):
             base_activation=torch.nn.SiLU,
             grid_eps: float = 0.02,
             grid_range: tuple = [-1, 1],
-            device: str = "cpu"
         ):
         """
         Kan Convolutional Layer with multiple convolutions
@@ -41,7 +40,6 @@ class KAN_Convolutional_Layer(torch.nn.Module):
             base_activation (torch.nn.Module): Activation function
             grid_eps (float): Epsilon of the grid
             grid_range (tuple): Range of the grid
-            device (str): Device to use
         """
 
 
@@ -49,7 +47,6 @@ class KAN_Convolutional_Layer(torch.nn.Module):
         self.grid_size = grid_size
         self.spline_order = spline_order
         self.kernel_size = kernel_size
-        self.device = device
         self.dilation = dilation
         self.padding = padding
         self.convs = torch.nn.ModuleList()
@@ -73,9 +70,12 @@ class KAN_Convolutional_Layer(torch.nn.Module):
                     base_activation=base_activation,
                     grid_eps=grid_eps,
                     grid_range=grid_range,
-                    device = device
                 )
             )
+
+    @property
+    def device(self):
+        return next(self.parameters()).device
 
     def forward(self, x: torch.Tensor, update_grid=False):
         # If there are multiple convolutions, apply them all
@@ -101,7 +101,6 @@ class KAN_Convolution(torch.nn.Module):
             base_activation=torch.nn.SiLU,
             grid_eps: float = 0.02,
             grid_range: tuple = [-1, 1],
-            device = "cpu"
         ):
         """
         Args
@@ -113,7 +112,6 @@ class KAN_Convolution(torch.nn.Module):
         self.stride = stride
         self.padding = padding
         self.dilation = dilation
-        self.device = device
         self.conv = KANLinear(
             in_features = math.prod(kernel_size),
             out_features = 1,
@@ -127,9 +125,13 @@ class KAN_Convolution(torch.nn.Module):
             grid_range=grid_range
         )
 
+    @property
+    def device(self):
+        return next(self.parameters()).device
+
     def forward(self, x: torch.Tensor, update_grid=False):
         return convolution.kan_conv2d(x, self.conv,self.kernel_size[0],self.stride,self.dilation,self.padding,self.device)
-    
+
     def regularization_loss(self, regularize_activation=1.0, regularize_entropy=1.0):
         return sum( layer.regularization_loss(regularize_activation, regularize_entropy) for layer in self.layers)
 

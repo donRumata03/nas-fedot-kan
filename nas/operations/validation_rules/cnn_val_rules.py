@@ -58,8 +58,8 @@ def model_has_no_conv_layers(graph: NasGraph):
 def model_has_dim_mismatch(graph: NasGraph):
     try:
         with torch.no_grad():
-            # TODO: resolve the divisibility problem and validate with 3 channels, too
-            input_shape = [[64, 64, 1], [512, 512, 1]]
+            # TODO: resolve the need of divisibility and validate with 3 channels, too
+            input_shape = [[28, 28, 1], [64, 64, 1]]
             for shape in input_shape:
                 m = NeuralSearchModel(NASTorchModel).compile_model(graph, shape, 5).model
                 m.to('cpu')

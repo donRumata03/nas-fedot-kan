@@ -45,7 +45,7 @@ set_root(project_root())
 def build_mnist_cls(save_path=None):
     cv_folds = None
     image_side_size = 28
-    batch_size = 64
+    batch_size = 16
     epochs = 3
     optimization_epochs = 1
     num_of_generations = 3
@@ -65,7 +65,6 @@ def build_mnist_cls(save_path=None):
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
-                                                             # TODO: is that about fc layers in the classification head or also about conv layer interjections?
                                                              max_number_of_neurons=128)
     conv_requirements = nas_requirements.ConvRequirements(
         min_number_of_neurons=4, max_number_of_neurons=64,
