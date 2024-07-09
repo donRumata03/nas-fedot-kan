@@ -72,7 +72,7 @@ def build_mnist_cls(save_path=None):
         pool_size=[2], pool_strides=[2])
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
-                                                            color_mode='color',
+                                                            color_mode='grayscale',
                                                             num_of_classes=data.num_classes,
                                                             conv_requirements=conv_requirements,
                                                             fc_requirements=fc_requirements,
@@ -96,13 +96,11 @@ def build_mnist_cls(save_path=None):
                                                            n_jobs=1,
                                                            cv_folds=cv_folds,
                                                            min_arity=1,  # Number of parents which data flow comes from
-                                                           max_arity=2  # For the shortcut case
+                                                           max_arity=2   # For the shortcut case
                                                            )
 
     data_preprocessor = Preprocessor(
-        transformations=[MinMaxScaler(train_data),
-                         # MakeSingleChannel(),
-                         ]
+        transformations=[MinMaxScaler(train_data), MakeSingleChannel()]
     )
     dataset_builder = ImageDatasetBuilder(dataset_cls=TorchDataset, image_size=(image_side_size, image_side_size),
                                           shuffle=True).set_data_preprocessor(data_preprocessor)
@@ -130,8 +128,7 @@ def build_mnist_cls(save_path=None):
                                                                           DefaultChangeAdvisor()))
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
-    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
-                             max_generation_attempts=500)
+    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules, max_generation_attempts=500)
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
 
@@ -149,7 +146,7 @@ def build_mnist_cls(save_path=None):
     if save_path:
         composer.save(path=save_path)
 
-    trainer = model_trainer.build([image_side_size, image_side_size, 3], test_data.num_classes,
+    trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,
                                   optimized_network)
 
     train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)
