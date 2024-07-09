@@ -82,8 +82,8 @@ def build_mnist_cls(save_path=None):
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,
                                                             max_nn_depth=3,
-                                                            min_num_of_conv_layers=4,
-                                                            max_num_of_conv_layers=6)
+                                                            min_num_of_conv_layers=3,
+                                                            max_num_of_conv_layers=5)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
@@ -128,7 +128,7 @@ def build_mnist_cls(save_path=None):
                                                                           DefaultChangeAdvisor()))
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
-    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules)
+    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules, max_generation_attempts=500)
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
 
@@ -146,7 +146,7 @@ def build_mnist_cls(save_path=None):
     if save_path:
         composer.save(path=save_path)
 
-    trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,  # TODO: not 3, but 1
+    trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,
                                   optimized_network)
 
     train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)

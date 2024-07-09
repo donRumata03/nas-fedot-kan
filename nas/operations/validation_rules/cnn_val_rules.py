@@ -62,9 +62,10 @@ def model_has_dim_mismatch(graph: NasGraph):
             input_shape = [[28, 28, 1], [64, 64, 1]]
             for shape in input_shape:
                 m = NeuralSearchModel(NASTorchModel).compile_model(graph, shape, 5).model
-                m.to('cpu')
+                # m.to('cpu')
+                m.to('cuda')
                 try:
-                    m.forward(torch.rand([4, *shape[::-1]]))
+                    m.forward(torch.rand([4, *shape[::-1]], device='cuda'))
                 except IndexError:
                     raise ValueError(f'{ERROR_PREFIX} graph has dimension conflict.')
     except RuntimeError as e:
