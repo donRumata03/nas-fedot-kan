@@ -54,7 +54,8 @@ def build_mnist_cls(save_path=None):
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
     objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.logloss)
-    dataset_path = pathlib.Path(project_root(), '../../mnist_dataset')
+    dataset_path = pathlib.Path(project_root(), 'cases/mnist/mnist_dataset')
+    print(dataset_path)
     data = InputDataNN.data_from_folder(dataset_path, task)
 
     conv_layers_pool = [LayersPoolEnum.conv2d, LayersPoolEnum.pooling2d, LayersPoolEnum.adaptive_pool2d]
