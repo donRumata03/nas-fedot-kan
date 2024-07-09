@@ -94,7 +94,10 @@ def build_mnist_cls(save_path=None):
                                                            # TODO: fix datatype bug in GOLEM
                                                            parallelization_mode='sequential',
                                                            n_jobs=1,
-                                                           cv_folds=cv_folds)
+                                                           cv_folds=cv_folds,
+                                                           min_arity=1,  # Number of parents which data flow comes from
+                                                           max_arity=2   # For the shortcut case
+                                                           )
 
     data_preprocessor = Preprocessor(
         transformations=[MinMaxScaler(train_data), MakeSingleChannel()]
