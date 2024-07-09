@@ -59,7 +59,7 @@ def model_has_dim_mismatch(graph: NasGraph):
     try:
         with torch.no_grad():
             # TODO: resolve the need of divisibility and validate with 3 channels, too
-            input_shape = [[28, 28, 1], [64, 64, 1]]
+            input_shape = [[28, 28, 3], [64, 64, 3]]
             for shape in input_shape:
                 m = NeuralSearchModel(NASTorchModel).compile_model(graph, shape, 5).model
                 # m.to('cpu')
