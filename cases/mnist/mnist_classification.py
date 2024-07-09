@@ -45,7 +45,7 @@ set_root(project_root())
 def build_mnist_cls(save_path=None):
     cv_folds = None
     image_side_size = 28
-    batch_size = 16
+    batch_size = 32
     epochs = 3
     optimization_epochs = 1
     num_of_generations = 3
@@ -67,7 +67,7 @@ def build_mnist_cls(save_path=None):
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              max_number_of_neurons=128)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=4, max_number_of_neurons=64,
+        min_number_of_neurons=16, max_number_of_neurons=64,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
