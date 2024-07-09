@@ -27,6 +27,17 @@ def get_list_of_power_of_2(min_value: int, max_value: int) -> List[int]:
     return [2 ** n for n in range(int(log2(max_value)) + 1) if 2 ** n >= min_value]
 
 
+def get_nearest_multiple_of_power_of_2(number: int, factor: int) -> int:
+    """
+    Such 2^k * factor that is closest to the given number
+    """
+    return get_nearest_power_of_2(number // factor) * factor
+
+
+def get_list_of_multiples_of_power_of_2(min_value: int, max_value: int, factor: int) -> List[int]:
+    return [factor * n for n in get_list_of_power_of_2(min_value // factor, max_value // factor)]
+
+
 def load_default_requirements() -> NNComposerRequirements:
     primary_nodes_list = [LayersPoolEnum.conv2d, LayersPoolEnum.adaptive_pool2d, LayersPoolEnum.pooling2d]
     fc_requirements = BaseLayerRequirements()
@@ -98,6 +109,7 @@ class BaseLayerRequirements:
 
 @dataclass
 class ConvRequirements(BaseLayerRequirements):
+    filter_size_factor: int = 3
     conv_strides: Optional[List[int], Tuple[int]] = None
     pool_size: Optional[List[int], Tuple[int]] = None
     pool_strides: Optional[List[int], Tuple[int]] = None
@@ -124,6 +136,11 @@ class ConvRequirements(BaseLayerRequirements):
 
         if not hasattr(self.conv_strides, '__iter__'):
             raise ValueError('Pool of possible strides must be an iterable object')
+
+    @property
+    def neurons_num(self) -> List[int]:
+        return get_list_of_multiples_of_power_of_2(self.min_number_of_neurons, self.max_number_of_neurons,
+                                                   self.filter_size_factor)
 
     def force_output_shape(self, output_shape: int) -> ConvRequirements:
         self.max_number_of_neurons = output_shape
@@ -246,6 +263,7 @@ class ModelRequirements:
             self.conv_requirements = ConvRequirements()
         if not self.fc_requirements:
             self.fc_requirements = BaseLayerRequirements()
+        self.conv_requirements.filter_size_factor = _get_image_channels_num(self.color_mode)
         if self.epochs < 1:
             raise ValueError(f'{self.epochs} is unacceptable number of train epochs.')
         if not all([side_size >= 3 for side_size in self.input_data_shape]):
