@@ -27,6 +27,17 @@ def get_list_of_power_of_2(min_value: int, max_value: int) -> List[int]:
     return [2 ** n for n in range(int(log2(max_value)) + 1) if 2 ** n >= min_value]
 
 
+def get_nearest_multiple_of_power_of_2(number: int, factor: int) -> int:
+    """
+    Such 2^k * factor that is closest to the given number
+    """
+    return get_nearest_power_of_2(number // factor) * factor
+
+
+def get_list_of_multiples_of_power_of_2(min_value: int, max_value: int, factor: int) -> List[int]:
+    return [factor * n for n in get_list_of_power_of_2(min_value // factor, max_value // factor)]
+
+
 def load_default_requirements() -> NNComposerRequirements:
     primary_nodes_list = [LayersPoolEnum.conv2d, LayersPoolEnum.adaptive_pool2d, LayersPoolEnum.pooling2d]
     fc_requirements = BaseLayerRequirements()
@@ -98,6 +109,7 @@ class BaseLayerRequirements:
 
 @dataclass
 class ConvRequirements(BaseLayerRequirements):
+    filter_size_factor: int = 3
     conv_strides: Optional[List[int], Tuple[int]] = None
     pool_size: Optional[List[int], Tuple[int]] = None
     pool_strides: Optional[List[int], Tuple[int]] = None
@@ -124,6 +136,11 @@ class ConvRequirements(BaseLayerRequirements):
 
         if not hasattr(self.conv_strides, '__iter__'):
             raise ValueError('Pool of possible strides must be an iterable object')
+
+    @property
+    def neurons_num(self) -> List[int]:
+        return get_list_of_multiples_of_power_of_2(self.min_number_of_neurons, self.max_number_of_neurons,
+                                                   self.filter_size_factor)
 
     def force_output_shape(self, output_shape: int) -> ConvRequirements:
         self.max_number_of_neurons = output_shape
@@ -171,31 +188,54 @@ class ConvRequirements(BaseLayerRequirements):
 
 @dataclass
 class KANSplineRequirements:
-    grid_size: int = 5
-    spline_order: int = 3
-    scale_noise: float = 0.1
-    scale_base: float = 1.0
-    scale_spline: float = 1.0
-    enable_standalone_scale_spline: bool = True
-    base_activation: str = "SiLU"
-    grid_eps: float = 0.02
-    grid_range: List[float] = (-1, 1)
+    grid_size: List[int] = field(default_factory=lambda: [5])
+    spline_order: List[int] = field(default_factory=lambda: [3])
+    scale_noise: List[float] = field(default_factory=lambda: [0.1])
+    scale_base: List[float] = field(default_factory=lambda: [1.0])
+    scale_spline: List[float] = field(default_factory=lambda: [1.0])
+    # Shouldn't depend on torch, no need for additional hyperparameters → just use SiLU
+    # base_activation: List[torch.nn.Module] = field(default_factory=lambda: [torch.nn.SiLU])
+    grid_eps: List[float] = field(default_factory=lambda: [0.02])
+    grid_range: List[Tuple[int, int]] = field(default_factory=lambda: [(-1, 1)])
 
 
 @dataclass
 class KANLinearRequirements(KANSplineRequirements):
-    min_out_features: int = 32
-    max_out_features: int = 256
+    min_number_of_neurons: int = 32
+    max_number_of_neurons: int = 256
+
+    def __post_init__(self):
+        self.min_number_of_neurons = get_nearest_power_of_2(self.min_number_of_neurons)
+        self.max_number_of_neurons = get_nearest_power_of_2(self.max_number_of_neurons)
+
+        if self.max_number_of_neurons < self.min_number_of_neurons:
+            raise ValueError('Min number of neurons in requirements cannot be greater than max number of neurons.')
+        if self.min_number_of_neurons < 2:
+            raise ValueError(f'Min number of neurons = {self.min_number_of_neurons} is unacceptable.')
+        if self.max_number_of_neurons < 2:
+            raise ValueError(f'Max number of neurons = {self.max_number_of_neurons} is unacceptable.')
+
+    @property
+    def neurons_num(self) -> List[int]:
+        return get_list_of_power_of_2(self.min_number_of_neurons, self.max_number_of_neurons)
 
 
 @dataclass
 class KANConvRequirements(KANSplineRequirements):
-    min_n_convs: int = 1
-    max_n_convs: int = 4
-    kernel_size: List[int] = (2, 2)
-    stride: List[int] = (1, 1)
-    padding: List[int] = (0, 0)
-    dilation: List[int] = (1, 1)
+    min_n_neurons: int = 2
+    max_n_neurons: int = 8
+    kernel_size: List[int] = field(default_factory=lambda: [2, 3, 5])
+    stride: List[int] = field(default_factory=lambda: [1, 2])
+    padding: List[int] = field(default_factory=lambda: [0, 1])
+    dilation: List[int] = field(default_factory=lambda: [1])
+
+    def __post_init__(self):
+        if self.max_n_neurons < self.min_n_neurons:
+            raise ValueError('Min number of convolutions in requirements cannot be greater than max number of convolutions.')
+        if self.min_n_neurons < 1:
+            raise ValueError(f'Min number of convolutions = {self.min_n_neurons} is unacceptable.')
+        if self.max_n_neurons < 1:
+            raise ValueError(f'Max number of convolutions = {self.max_n_neurons} is unacceptable.')
 
 
 @dataclass
@@ -223,6 +263,7 @@ class ModelRequirements:
             self.conv_requirements = ConvRequirements()
         if not self.fc_requirements:
             self.fc_requirements = BaseLayerRequirements()
+        self.conv_requirements.filter_size_factor = _get_image_channels_num(self.color_mode)
         if self.epochs < 1:
             raise ValueError(f'{self.epochs} is unacceptable number of train epochs.')
         if not all([side_size >= 3 for side_size in self.input_data_shape]):

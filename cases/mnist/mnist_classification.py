@@ -46,7 +46,7 @@ set_root(project_root())
 def build_mnist_cls(save_path=None):
     cv_folds = None
     image_side_size = 28
-    batch_size = 16
+    batch_size = 32
     epochs = 3
     optimization_epochs = 1
     num_of_generations = 3
@@ -55,7 +55,8 @@ def build_mnist_cls(save_path=None):
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
     objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.logloss)
-    dataset_path = pathlib.Path(project_root(), '../../mnist_dataset')
+    dataset_path = pathlib.Path(project_root(), 'cases/mnist/mnist_dataset')
+    print(dataset_path)
     data = InputDataNN.data_from_folder(dataset_path, task)
 
     conv_layers_pool = [LayersPoolEnum.conv2d, LayersPoolEnum.pooling2d, LayersPoolEnum.adaptive_pool2d]
@@ -68,7 +69,7 @@ def build_mnist_cls(save_path=None):
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              max_number_of_neurons=128)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=4, max_number_of_neurons=64,
+        min_number_of_neurons=16, max_number_of_neurons=64,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
@@ -83,8 +84,8 @@ def build_mnist_cls(save_path=None):
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,
                                                             max_nn_depth=3,
-                                                            min_num_of_conv_layers=4,
-                                                            max_num_of_conv_layers=6)
+                                                            min_num_of_conv_layers=3,
+                                                            max_num_of_conv_layers=5)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
@@ -95,7 +96,10 @@ def build_mnist_cls(save_path=None):
                                                            # TODO: fix datatype bug in GOLEM
                                                            parallelization_mode='sequential',
                                                            n_jobs=1,
-                                                           cv_folds=cv_folds)
+                                                           cv_folds=cv_folds,
+                                                           min_arity=1,  # Number of parents which data flow comes from
+                                                           max_arity=2   # For the shortcut case
+                                                           )
 
     data_preprocessor = Preprocessor(
         transformations=[
@@ -129,7 +133,7 @@ def build_mnist_cls(save_path=None):
                                                                           DefaultChangeAdvisor()))
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
-    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules)
+    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules, max_generation_attempts=500)
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
 
@@ -147,7 +151,7 @@ def build_mnist_cls(save_path=None):
     if save_path:
         composer.save(path=save_path)
 
-    trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,  # TODO: not 3, but 1
+    trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,
                                   optimized_network)
 
     train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)

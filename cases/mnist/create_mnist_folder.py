@@ -25,7 +25,7 @@ def save_mnist_to_folder(mnist_data, root_dir):
 
 
 # Root directory to save images (same for train and test parts, because splitting is done in fedot-nas)
-mnist_root_dir = project_root() / "../../mnist_dataset"
+mnist_root_dir = project_root() / "cases/mnist/mnist_dataset"
 
 # Load Pytorch's MNIST
 train_data = MNIST(root='./mnist_dataset', train=True, download=True, transform=ToTensor())
