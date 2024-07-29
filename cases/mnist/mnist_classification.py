@@ -1,6 +1,7 @@
 import datetime
 import os
 import pathlib
+import random
 
 import numpy as np
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -97,12 +98,15 @@ def build_mnist_cls(save_path=None):
                                                            cv_folds=cv_folds)
 
     data_preprocessor = Preprocessor(
-        transformations=[MinMaxScaler(train_data), MakeSingleChannel()]
+        transformations=[
+            MinMaxScaler(train_data.subset_indices(random.sample(list(range(train_data.features.shape[0])), 100))),
+            MakeSingleChannel()
+        ]
     )
     dataset_builder = ImageDatasetBuilder(dataset_cls=TorchDataset, image_size=(image_side_size, image_side_size),
                                           shuffle=True).set_data_preprocessor(data_preprocessor)
 
-    model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel, device='cuda',
+    model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel, device='cpu',
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
     validation_rules = [
