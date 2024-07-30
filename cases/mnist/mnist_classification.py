@@ -29,7 +29,7 @@ from nas.data.dataset.torch_dataset import TorchDataset
 from nas.data.filters import NasImageNormalizer, MinMaxScaler, MakeSingleChannel
 from nas.data.nas_data import InputDataNN
 from nas.data.preprocessor import Preprocessor
-from nas.graph.builder.base_graph_builder import BaseGraphBuilder
+from nas.graph.builder.base_graph_builder import BaseGraphBuilder, GraphGenerator
 from nas.graph.builder.cnn_builder import ConvGraphMaker
 from nas.graph.builder.resnet_builder import ResNetBuilder
 from nas.graph.node.nas_graph_node import NasNode
@@ -41,6 +41,66 @@ from nas.repository.layer_types_enum import LayersPoolEnum
 from nas.utils.utils import set_root, project_root
 
 set_root(project_root())
+
+
+class FixedGraphGenerator(GraphGenerator):
+
+    def __init__(self, graph: NasGraph):
+        self.graph = graph
+
+    def _add_node(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def build(self, *args, **kwargs) -> NasGraph:
+        return self.graph
+
+
+def generate_kkan_from_paper() -> NasGraph:
+    n_convs = 5
+    node_types = [
+        LayersPoolEnum.conv2d,
+        LayersPoolEnum.pooling2d,
+
+        LayersPoolEnum.conv2d,
+        LayersPoolEnum.pooling2d,
+
+        LayersPoolEnum.adaptive_pool2d,
+        LayersPoolEnum.flatten
+    ]
+
+    graph = NasGraph()
+    parent_node = None
+    shape = 1
+    for node_type in node_types:
+        if node_type == LayersPoolEnum.conv2d:
+            shape *= n_convs
+
+        param_variants = {
+            'conv2d': {
+                'out_shape': shape,
+                'kernel_size': 3,
+                'activation': 'tanh',
+                'stride': 1,
+                'padding': 1
+            },
+            'pooling2d': {
+                'pool_size': 2,
+                'pool_stride': 2,
+                'mode': "max"
+            },
+            'adaptive_pool2d': {'mode': 'max', 'out_shape': 1},
+            'flatten': {}
+        }
+
+        node = NasNode(
+            content={'name': node_type.value, 'params': param_variants[node_type.value]},
+            nodes_from=[parent_node] if parent_node is not None else None
+        )
+
+        graph.add_node(node)
+        parent_node = node
+
+    return graph
 
 
 def build_mnist_cls(save_path=None):
@@ -98,7 +158,7 @@ def build_mnist_cls(save_path=None):
                                                            n_jobs=1,
                                                            cv_folds=cv_folds,
                                                            min_arity=1,  # Number of parents which data flow comes from
-                                                           max_arity=2   # For the shortcut case
+                                                           max_arity=2  # For the shortcut case
                                                            )
 
     data_preprocessor = Preprocessor(
@@ -133,7 +193,12 @@ def build_mnist_cls(save_path=None):
                                                                           DefaultChangeAdvisor()))
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
-    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules, max_generation_attempts=500)
+
+    # builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
+    #                          max_generation_attempts=500)
+
+    builder = FixedGraphGenerator(graph=generate_kkan_from_paper())
+
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
 
