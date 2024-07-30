@@ -8,6 +8,7 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
 from golem.core.adapter.adapter import DirectAdapter
 from golem.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from golem.core.optimisers.advisor import DefaultChangeAdvisor
@@ -104,6 +105,7 @@ def generate_kkan_from_paper() -> NasGraph:
 
 
 def build_mnist_cls(save_path=None):
+    visualize = False
     cv_folds = None
     image_side_size = 28
     batch_size = 32
@@ -194,10 +196,10 @@ def build_mnist_cls(save_path=None):
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
 
-    # builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
-    #                          max_generation_attempts=500)
+    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
+                             max_generation_attempts=500)
 
-    builder = FixedGraphGenerator(graph=generate_kkan_from_paper())
+    # builder = FixedGraphGenerator(graph=generate_kkan_from_paper())
 
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
@@ -216,6 +218,16 @@ def build_mnist_cls(save_path=None):
     if save_path:
         composer.save(path=save_path)
 
+    history = composer.history
+    if visualize:
+        history_visualizer = PipelineHistoryVisualizer(history)
+        history_visualizer.fitness_line()
+        # history_visualizer.fitness_box(best_fraction=0.5)
+        # history_visualizer.operations_kde()
+        # history_visualizer.operations_animated_bar(save_path='example_animation.gif', show_fitness=True)
+        history_visualizer.fitness_line_interactive()
+
+
     trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,
                                   optimized_network)
 
@@ -228,7 +240,6 @@ def build_mnist_cls(save_path=None):
                               shuffle=False)
     trainer.fit_model(train_dataset, val_data, epochs)
     predictions, targets = trainer.predict(test_dataset)
-    history = composer.history
 
     loss = log_loss(targets, predictions)
     roc = roc_auc_score(targets, predictions, multi_class='ovo')
