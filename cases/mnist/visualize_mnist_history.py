@@ -1,3 +1,4 @@
+from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.visualisation.opt_viz import PlotTypesEnum
 
@@ -11,4 +12,9 @@ print(history)
 
 # history.show(PlotTypesEnum.operations_animated_bar)
 # history.show(PlotTypesEnum.operations_kde)
-history.show(PlotTypesEnum.fitness_line_interactive)
+# history.show(PlotTypesEnum.fitness_line_interactive)
+
+print(history.get_leaderboard())
+
+chosen = history.final_choices[0].graph
+PipelineVisualizer(chosen).visualise()
