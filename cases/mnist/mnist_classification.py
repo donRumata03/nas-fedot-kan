@@ -196,10 +196,10 @@ def build_mnist_cls(save_path=None):
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
 
-    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
-                             max_generation_attempts=500)
+    # builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
+    #                          max_generation_attempts=500)
 
-    # builder = FixedGraphGenerator(graph=generate_kkan_from_paper())
+    builder = FixedGraphGenerator(graph=generate_kkan_from_paper())
 
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)

@@ -8,6 +8,7 @@ import torch.nn
 import tqdm
 from golem.core.dag.graph_node import GraphNode
 from numpy import ndarray, dtype
+from torch import nn
 from torch.utils.data import DataLoader
 
 from nas.graph.base_graph import NasGraph
@@ -55,6 +56,47 @@ def get_input_shape(node: Union[GraphNode, NasNode],
     return side_size, output_channels
 
 
+def present_node_dim_info(input_shape, output_shape) -> dict:
+    dim_kind = "2d" if len(output_shape) == 3 else "flatten" if len(input_shape) == 3 else "1d"
+    res = {
+        "dim_kind": dim_kind,
+    }
+
+    def present_2d_shape_dim_info(shape) -> dict:
+        return {
+            "channels": shape[0],
+            "side_size": shape[1],
+        }
+
+    if dim_kind == "2d":
+        res["input"] = present_2d_shape_dim_info(input_shape)
+        res["output"] = present_2d_shape_dim_info(output_shape)
+
+    if dim_kind == "flatten":
+        res["input"] = present_2d_shape_dim_info(input_shape)
+        res["flattened"] = output_shape[0]
+        res["output_dim"] = res["flattened"]  # To keep compatibility with 1d
+
+    if dim_kind == "1d":
+        res["input_dim"] = input_shape[0]
+        res["output_dim"] = output_shape[0]
+
+    # TODO: cache computational complexity here, too
+
+    return res
+
+
+def count_parameters(module: nn.Module):
+    return sum(p.numel() for p in module.parameters() if p.requires_grad)
+
+
+def count_parameters_dict(dict_with_layers):
+    """
+    Dict containing some nn.Module`s
+    """
+    return sum(count_parameters(l) for k, l in dict_with_layers.items() if isinstance(l, nn.Module))
+
+
 class NASTorchModel(torch.nn.Module):
     """
     Implementation of Pytorch model class for graph described architectures.
@@ -73,26 +115,45 @@ class NASTorchModel(torch.nn.Module):
     def init_model(self, in_shape: Union[Tuple[int], List[int]], out_shape: int, graph: NasGraph, **kwargs):
         self._graph = graph
         visited_nodes = set()
+        visited_node_outputs = {}
         out_shape = out_shape if out_shape > 2 else 1
 
-        def _init_layer(node: Union[GraphNode, NasNode]):
+        def _init_layer(node: Union[GraphNode, NasNode]) -> torch.Tensor:
             if node.nodes_from:
                 for n in node.nodes_from:
-                    _init_layer(n)
+                    input_tensor = _init_layer(n)
+            else:
+                input_tensor = torch.rand([2, *in_shape[::-1]])
+
             if node not in visited_nodes:
                 layer_func = TorchLayerFactory.get_layer(node)
-                input_channels = in_shape[-1] if not get_input_shape(node)[-1] else get_input_shape(node)[1]
+                input_channels = input_tensor.shape[1]
                 layer = layer_func['weighted_layer'](node, input_dim=input_channels)
+                output_tensor = layer(input_tensor)
+
+                # Cache dims data:
+                input_shape = input_tensor.shape[1:]
+                output_shape = output_tensor.shape[1:]
+                node.content["dims"] = present_node_dim_info(input_shape, output_shape)
+
+                # Cache parameter data:
+                node.content["parameter_count"] = count_parameters(layer)
+
                 self.__setattr__(f'node_{node.uid}', layer)
                 if layer_func.get('normalization'):
                     output_shape = node.parameters[
                         'out_shape']
-                    self.__setattr__(f'node_{node.uid}_n', layer_func['normalization'](node, input_dim=output_shape))
+                    normalization_module = layer_func['normalization'](node, input_dim=output_shape)
+                    self.__setattr__(f'node_{node.uid}_n', normalization_module)
+                    node.content["parameter_count"] += count_parameters(normalization_module)
+
+                visited_node_outputs[node.uid] = output_tensor
                 visited_nodes.add(node)
 
+            return visited_node_outputs[node.uid]
+
         _init_layer(graph.root_node)
-        weighs_kernel_size = get_input_shape(graph.root_node) if get_input_shape(graph.root_node)[0] else [in_shape[0]]
-        self.output_layer = torch.nn.Linear(weighs_kernel_size[-1], out_shape)
+        self.output_layer = torch.nn.Linear(graph.root_node.content["dims"]["output_dim"], out_shape)
 
     def forward(self, inputs: torch.Tensor):
         visited_nodes = set()

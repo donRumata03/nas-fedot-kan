@@ -4,7 +4,7 @@ from golem.visualisation.opt_viz import PlotTypesEnum
 
 from nas.utils.utils import project_root
 
-path = project_root() / "_results/debug/master_2/2024-07-31_00-17-45/history.json"
+path = project_root() / "_results/debug/master_2/2024-07-31_18-05-42/history.json"
 
 history = OptHistory.load(path)
 
@@ -12,7 +12,7 @@ print(history)
 
 # history.show(PlotTypesEnum.operations_animated_bar)
 # history.show(PlotTypesEnum.operations_kde)
-# history.show(PlotTypesEnum.fitness_line_interactive)
+history.show(PlotTypesEnum.fitness_line_interactive)
 
 print(history.get_leaderboard())
 

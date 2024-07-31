@@ -18,6 +18,7 @@ from nas.data.dataset.builder import BaseNNDatasetBuilder
 from nas.graph.base_graph import NasGraph
 from nas.model.constructor import ModelConstructor
 from nas.model.model_interface import NeuralSearchModel
+from nas.operations.validation_rules.cnn_val_rules import model_has_dim_mismatch
 
 
 class NASObjectiveEvaluate(ObjectiveEvaluate):
@@ -43,6 +44,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         self._log = default_log(self)
 
     def evaluate(self, graph: NasGraph) -> Fitness:
+        model_has_dim_mismatch(graph)
         return SingleObjFitness(random.random())
         fold_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
