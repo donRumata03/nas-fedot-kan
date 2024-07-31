@@ -66,7 +66,7 @@ def generate_kkan_from_paper() -> NasGraph:
         LayersPoolEnum.conv2d,
         LayersPoolEnum.pooling2d,
 
-        LayersPoolEnum.adaptive_pool2d,
+        # LayersPoolEnum.adaptive_pool2d,
         LayersPoolEnum.flatten
     ]
 
@@ -109,7 +109,7 @@ def build_mnist_cls(save_path=None):
     visualize = False
     cv_folds = None
     image_side_size = 28
-    batch_size = 32
+    batch_size = 64
     epochs = 3
     optimization_epochs = 1
     num_of_generations = 3
@@ -173,7 +173,7 @@ def build_mnist_cls(save_path=None):
     dataset_builder = ImageDatasetBuilder(dataset_cls=TorchDataset, image_size=(image_side_size, image_side_size),
                                           shuffle=True).set_data_preprocessor(data_preprocessor)
 
-    model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel, device='cpu',
+    model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel, device='cuda',
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
     validation_rules = [
@@ -188,7 +188,8 @@ def build_mnist_cls(save_path=None):
                                                  mutation_types=mutations,
                                                  crossover_types=[CrossoverTypesEnum.subtree],
                                                  pop_size=population_size,
-                                                 regularization_type=RegularizationTypesEnum.none)
+                                                 regularization_type=RegularizationTypesEnum.none,
+                                                 multi_objective=True)
 
     graph_generation_parameters = GraphGenerationParams(
         adapter=DirectAdapter(base_graph_class=NasGraph, base_node_class=NasNode),
@@ -217,7 +218,7 @@ def build_mnist_cls(save_path=None):
     composer.set_trainer(model_trainer)
     composer.set_dataset_builder(dataset_builder)
 
-    optimized_network = composer.compose_pipeline(train_data)
+    optimized_network = composer.compose_pipeline(train_data)[0]  # TODO: Fit all models from Pareto front?
 
     if save_path:
         composer.save(path=save_path)

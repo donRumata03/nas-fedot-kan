@@ -8,7 +8,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import DataSource
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from golem.core.log import default_log
-from golem.core.optimisers.fitness import Fitness, SingleObjFitness
+from golem.core.optimisers.fitness import Fitness, SingleObjFitness, MultiObjFitness
 from golem.core.optimisers.objective import ObjectiveEvaluate, Objective
 from golem.core.optimisers.objective.objective import to_fitness
 from torch.utils.data import DataLoader
@@ -44,8 +44,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         self._log = default_log(self)
 
     def evaluate(self, graph: NasGraph) -> Fitness:
-        model_has_dim_mismatch(graph)
-        return SingleObjFitness(random.random())
+        # return MultiObjFitness([random.random(), list(self._objective.metrics)[-1][1](graph)])
         fold_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             gc.collect()

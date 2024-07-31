@@ -4,7 +4,7 @@ from golem.visualisation.opt_viz import PlotTypesEnum
 
 from nas.utils.utils import project_root
 
-path = project_root() / "_results/debug/master_2/2024-07-31_18-05-42/history.json"
+path = project_root() / "_results/debug/master_2/2024-07-31_20-39-53/history.json"
 
 history = OptHistory.load(path)
 
