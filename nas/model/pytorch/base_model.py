@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 
 from nas.graph.base_graph import NasGraph
 from nas.graph.node.nas_graph_node import NasNode
+from nas.model.model_interface import NeuralSearchModel
 from nas.model.pytorch.layers.layer_initializer import TorchLayerFactory
 
 WEIGHTED_NODE_NAMES = ['conv2d', 'linear']
@@ -95,6 +96,14 @@ def count_parameters_dict(dict_with_layers):
     Dict containing some nn.Module`s
     """
     return sum(count_parameters(l) for k, l in dict_with_layers.items() if isinstance(l, nn.Module))
+
+
+def compute_total_graph_parameters(graph: NasGraph, in_shape, out_shape):
+    # First, initialize `NASTorchModel` to cache dims/parameters
+    m = NeuralSearchModel(NASTorchModel).compile_model(graph, in_shape, out_shape).model
+
+    # Compute sum of all node parameters
+    return sum(n.content["dims"]["parameter_count"] for n in graph.nodes)
 
 
 class NASTorchModel(torch.nn.Module):

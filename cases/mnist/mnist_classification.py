@@ -36,6 +36,7 @@ from nas.graph.builder.resnet_builder import ResNetBuilder
 from nas.graph.node.nas_graph_node import NasNode
 from nas.graph.node.node_factory import NNNodeFactory
 from nas.model.constructor import ModelConstructor
+from nas.model.pytorch.base_model import compute_total_graph_parameters
 from nas.operations.validation_rules.cnn_val_rules import *
 from nas.optimizer.objective.nas_cnn_optimiser import NNGraphOptimiser
 from nas.repository.layer_types_enum import LayersPoolEnum
@@ -204,8 +205,11 @@ def build_mnist_cls(save_path=None):
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
 
+    def parameter_count_complexity_metric(graph: NasGraph):
+        return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], test_data.num_classes)
+
     builder = ComposerBuilder(task).with_composer(NNComposer).with_optimizer(NNGraphOptimiser). \
-        with_requirements(requirements).with_metrics(objective_function).with_optimizer_params(optimizer_parameters). \
+        with_requirements(requirements).with_metrics([objective_function, parameter_count_complexity_metric]).with_optimizer_params(optimizer_parameters). \
         with_initial_pipelines(graph_generation_function.build()). \
         with_graph_generation_param(graph_generation_parameters)
 
@@ -226,7 +230,6 @@ def build_mnist_cls(save_path=None):
         # history_visualizer.operations_kde()
         # history_visualizer.operations_animated_bar(save_path='example_animation.gif', show_fitness=True)
         history_visualizer.fitness_line_interactive()
-
 
     trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,
                                   optimized_network)
