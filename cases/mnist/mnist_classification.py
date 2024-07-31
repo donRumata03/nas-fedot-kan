@@ -21,7 +21,9 @@ from golem.core.optimisers.optimizer import GraphGenerationParams
 from sklearn.metrics import log_loss, roc_auc_score, f1_score
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
+from torchvision.datasets import MNIST
+from torchvision.transforms import transforms
 
 import nas.composer.requirements as nas_requirements
 from nas.composer.nn_composer import NNComposer
@@ -110,7 +112,7 @@ def build_mnist_cls(save_path=None):
     cv_folds = None
     image_side_size = 28
     batch_size = 64
-    epochs = 3
+    epochs = 1
     optimization_epochs = 1
     num_of_generations = 3
     population_size = 3
@@ -118,6 +120,18 @@ def build_mnist_cls(save_path=None):
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
     objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.logloss)
+
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+
+    def one_hot_encode(target):
+        return torch.nn.functional.one_hot(torch.tensor(target), num_classes=10).float()
+
+    mnist_path = project_root() / "cases/mnist"
+    mnist_train = MNIST(root=mnist_path, train=True, download=True, transform=transform,
+                        target_transform=one_hot_encode)
+    mnist_test = MNIST(root=mnist_path, train=False, download=True, transform=transform,
+                       target_transform=one_hot_encode)
+
     dataset_path = pathlib.Path(project_root(), 'cases/mnist/mnist_dataset')
     print(dataset_path)
     data = InputDataNN.data_from_folder(dataset_path, task)
@@ -152,7 +166,7 @@ def build_mnist_cls(save_path=None):
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=3),
+                                                           timeout=datetime.timedelta(minutes=3),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
@@ -210,7 +224,8 @@ def build_mnist_cls(save_path=None):
         return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], test_data.num_classes)
 
     builder = ComposerBuilder(task).with_composer(NNComposer).with_optimizer(NNGraphOptimiser). \
-        with_requirements(requirements).with_metrics([objective_function, parameter_count_complexity_metric]).with_optimizer_params(optimizer_parameters). \
+        with_requirements(requirements).with_metrics(
+        [objective_function, parameter_count_complexity_metric]).with_optimizer_params(optimizer_parameters). \
         with_initial_pipelines(graph_generation_function.build()). \
         with_graph_generation_param(graph_generation_parameters)
 
@@ -235,13 +250,16 @@ def build_mnist_cls(save_path=None):
     trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,
                                   optimized_network)
 
-    train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)
-    train_dataset = DataLoader(dataset_builder.build(train_data), batch_size=requirements.model_requirements.batch_size,
+    # train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)
+    mnist_train, mnist_val = random_split(mnist_train, [.7, .3])
+
+    train_dataset = DataLoader(mnist_train, batch_size=requirements.model_requirements.batch_size,
                                shuffle=True)
-    val_data = DataLoader(dataset_builder.build(val_data), batch_size=requirements.model_requirements.batch_size,
+    val_data = DataLoader(mnist_val, batch_size=requirements.model_requirements.batch_size,
                           shuffle=True)
-    test_dataset = DataLoader(dataset_builder.build(test_data), batch_size=requirements.model_requirements.batch_size,
+    test_dataset = DataLoader(mnist_test, batch_size=requirements.model_requirements.batch_size,
                               shuffle=False)
+
     trainer.fit_model(train_dataset, val_data, epochs)
     predictions, targets = trainer.predict(test_dataset)
 
