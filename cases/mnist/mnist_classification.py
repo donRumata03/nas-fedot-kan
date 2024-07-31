@@ -231,9 +231,9 @@ def build_mnist_cls(save_path=None):
 
     composer = builder.build()
     composer.set_trainer(model_trainer)
-    composer.set_dataset_builder(dataset_builder)
+    # composer.set_dataset_builder(dataset_builder)
 
-    optimized_network = composer.compose_pipeline(train_data)[0]  # TODO: Fit all models from Pareto front?
+    optimized_network = composer.compose_pipeline(mnist_train)[0]  # TODO: Fit all models from Pareto front?
 
     if save_path:
         composer.save(path=save_path)
