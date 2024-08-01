@@ -83,10 +83,13 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         """
         Method for graph's fitness estimation on given data. Estimates fitted model fitness.
         """
-        complexity_matrics = [m(graph) for _, m in self._objective.complexity_metrics.items()]
+        # complexity_metrics = [m(graph) for _, m in self._objective.complexity_metrics.items()]
+        # complexity_metrics.extend([m(graph) for m in self._objective.quality_metrics[1:].values()])
+        complexity_metrics = [m(graph) for _, m in
+                              self._objective.metrics[1:]]  # dicts maintain insertion order, first is loss
         test_dataset = DataLoader(test_data,
                                   batch_size=self._requirements.model_requirements.batch_size,
                                   shuffle=False, num_workers=0)
         eval_metrics = fitted_model.validate(test_dataset)
         eval_metrics = [m for m in eval_metrics.values()]
-        return to_fitness([*eval_metrics, *complexity_matrics], self._objective.is_multi_objective)
+        return to_fitness([*eval_metrics, *complexity_metrics], self._objective.is_multi_objective)

@@ -133,7 +133,6 @@ def build_mnist_cls(save_path=None):
                        target_transform=one_hot_encode)
 
     dataset_path = pathlib.Path(project_root(), 'cases/mnist/mnist_dataset')
-    print(dataset_path)
     data = InputDataNN.data_from_folder(dataset_path, task)
 
     conv_layers_pool = [LayersPoolEnum.conv2d, LayersPoolEnum.pooling2d, LayersPoolEnum.adaptive_pool2d]
@@ -146,7 +145,7 @@ def build_mnist_cls(save_path=None):
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              max_number_of_neurons=128)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=16, max_number_of_neurons=64,
+        min_number_of_neurons=2, max_number_of_neurons=32,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
@@ -161,12 +160,12 @@ def build_mnist_cls(save_path=None):
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,
                                                             max_nn_depth=3,
-                                                            min_num_of_conv_layers=3,
-                                                            max_num_of_conv_layers=5)
+                                                            min_num_of_conv_layers=2,
+                                                            max_num_of_conv_layers=3)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(minutes=3),
+                                                           timeout=datetime.timedelta(hours=1),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
