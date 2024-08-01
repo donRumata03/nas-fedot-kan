@@ -5,7 +5,7 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from nas.utils.utils import project_root
 
-path = project_root() / "_results/debug/master_2/2024-08-01_01-30-21/history.json"
+path = project_root() / "_results/debug/master_2/2024-08-01_03-01-45/history.json"
 
 history = OptHistory.load(path)
 
@@ -16,7 +16,7 @@ print(history)
 history.show(PlotTypesEnum.fitness_line_interactive)
 
 visualise_pareto(
-    history.final_choices.data, show=True
+    history.final_choices.data, show=True, objectives_names=("LogLoss", "Parameters")
 )
 
 print(history.get_leaderboard())
