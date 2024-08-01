@@ -91,19 +91,12 @@ def count_parameters(module: nn.Module):
     return sum(p.numel() for p in module.parameters() if p.requires_grad)
 
 
-def count_parameters_dict(dict_with_layers):
-    """
-    Dict containing some nn.Module`s
-    """
-    return sum(count_parameters(l) for k, l in dict_with_layers.items() if isinstance(l, nn.Module))
-
-
 def compute_total_graph_parameters(graph: NasGraph, in_shape, out_shape):
     # First, initialize `NASTorchModel` to cache dims/parameters
     m = NeuralSearchModel(NASTorchModel).compile_model(graph, in_shape, out_shape).model
-    all_layer_parameters = sum(n.content["parameter_count"] for n in graph.nodes)
-    print(f"Counted in full model: {count_parameters(m)}")
-    print(f"Computed by layer: {all_layer_parameters}")
+    # all_layer_parameters = sum(n.content["parameter_count"] for n in graph.nodes)
+    # print(f"Counted in full model: {count_parameters(m)}")
+    # print(f"Computed by layer: {all_layer_parameters}")
 
     # Compute sum of all node parameters
     return count_parameters(m)

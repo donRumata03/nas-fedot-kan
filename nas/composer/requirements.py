@@ -193,7 +193,7 @@ class KANSplineRequirements:
     scale_noise: List[float] = field(default_factory=lambda: [0.1])
     scale_base: List[float] = field(default_factory=lambda: [1.0])
     scale_spline: List[float] = field(default_factory=lambda: [1.0])
-    # Shouldn't depend on torch, no need for additional hyperparameters → just use SiLU
+    # Shouldn't depend on torch, no need for excessive hyperparameters → just use SiLU
     # base_activation: List[torch.nn.Module] = field(default_factory=lambda: [torch.nn.SiLU])
     grid_eps: List[float] = field(default_factory=lambda: [0.02])
     grid_range: List[Tuple[int, int]] = field(default_factory=lambda: [(-1, 1)])

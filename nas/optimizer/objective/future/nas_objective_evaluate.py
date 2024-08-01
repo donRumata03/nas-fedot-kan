@@ -75,6 +75,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
 
         input_shape = self._requirements.model_requirements.input_shape
         trainer = self._model_trainer_builder.build(input_shape=input_shape, output_shape=classes, graph=graph)
+        # NOTE: COMMENT OUT TO SKIP TRAINING IN DEBUG PURPOSES
         trainer.fit_model(train_data=opt_dataset, epochs=opt_epochs)
         return trainer
 

@@ -186,7 +186,8 @@ def build_mnist_cls(save_path=None):
     dataset_builder = ImageDatasetBuilder(dataset_cls=TorchDataset, image_size=(image_side_size, image_side_size),
                                           shuffle=True).set_data_preprocessor(data_preprocessor)
 
-    model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel, device='cuda',
+    model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel,
+                                     device='cuda' if torch.cuda.is_available() else 'cpu',
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
     validation_rules = [
