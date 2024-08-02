@@ -188,15 +188,11 @@ class ConvRequirements(BaseLayerRequirements):
 
 @dataclass
 class KANSplineRequirements:
-    grid_size: List[int] = field(default_factory=lambda: [5])
-    spline_order: List[int] = field(default_factory=lambda: [3])
-    scale_noise: List[float] = field(default_factory=lambda: [0.1])
-    scale_base: List[float] = field(default_factory=lambda: [1.0])
-    scale_spline: List[float] = field(default_factory=lambda: [1.0])
+    grid_size: List[int] = field(default_factory=lambda: [3, 5, 10, 20])
+    spline_order: List[int] = field(default_factory=lambda: [2, 3, 5])
     # Shouldn't depend on torch, no need for excessive hyperparameters → just use SiLU
     # base_activation: List[torch.nn.Module] = field(default_factory=lambda: [torch.nn.SiLU])
-    grid_eps: List[float] = field(default_factory=lambda: [0.02])
-    grid_range: List[Tuple[int, int]] = field(default_factory=lambda: [(-1, 1)])
+    grid_range: List[Tuple[int, int]] = field(default_factory=lambda: [(-1, 1)])  # Auto-scaled anyway
 
 
 @dataclass
@@ -223,15 +219,16 @@ class KANLinearRequirements(KANSplineRequirements):
 @dataclass
 class KANConvRequirements(KANSplineRequirements):
     min_n_neurons: int = 2
-    max_n_neurons: int = 8
-    kernel_size: List[int] = field(default_factory=lambda: [2, 3, 5])
-    stride: List[int] = field(default_factory=lambda: [1, 2])
-    padding: List[int] = field(default_factory=lambda: [0, 1])
-    dilation: List[int] = field(default_factory=lambda: [1])
+    max_n_neurons: int = 32
+    kernel_size: List[int] = field(default_factory=lambda: [3, 5])
+
+    # Padding would be computed automatically form kernel size to maintain the feature map size:
+    # padding: List[int] = field(default_factory=lambda: [0, 1])
 
     def __post_init__(self):
         if self.max_n_neurons < self.min_n_neurons:
-            raise ValueError('Min number of convolutions in requirements cannot be greater than max number of convolutions.')
+            raise ValueError(
+                'Min number of convolutions in requirements cannot be greater than max number of convolutions.')
         if self.min_n_neurons < 1:
             raise ValueError(f'Min number of convolutions = {self.min_n_neurons} is unacceptable.')
         if self.max_n_neurons < 1:
@@ -241,8 +238,12 @@ class KANConvRequirements(KANSplineRequirements):
 @dataclass
 class ModelRequirements:
     input_data_shape: List[int]
+
     conv_requirements: ConvRequirements = None
     fc_requirements: BaseLayerRequirements = None
+    kan_conv_requirements: KANConvRequirements = None
+    kan_linear_requirements: KANLinearRequirements = None
+
     color_mode: str = 'color'
     num_of_classes: int = None
 
@@ -263,7 +264,14 @@ class ModelRequirements:
             self.conv_requirements = ConvRequirements()
         if not self.fc_requirements:
             self.fc_requirements = BaseLayerRequirements()
+        if not self.kan_conv_requirements:
+            self.kan_conv_requirements = KANConvRequirements()
+        if not self.kan_linear_requirements:
+            self.kan_linear_requirements = KANLinearRequirements()
+
         self.conv_requirements.filter_size_factor = _get_image_channels_num(self.color_mode)
+        self.kan_conv_requirements.filter_size_factor = _get_image_channels_num(self.color_mode)
+
         if self.epochs < 1:
             raise ValueError(f'{self.epochs} is unacceptable number of train epochs.')
         if not all([side_size >= 3 for side_size in self.input_data_shape]):

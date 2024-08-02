@@ -18,7 +18,7 @@ from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTyp
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
 from golem.core.optimisers.optimizer import GraphGenerationParams
-from sklearn.metrics import log_loss, roc_auc_score, f1_score
+from sklearn.metrics import log_loss, roc_auc_score, f1_score, accuracy_score
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader, random_split
@@ -265,11 +265,14 @@ def build_mnist_cls(save_path=None):
 
     loss = log_loss(targets, predictions)
     roc = roc_auc_score(targets, predictions, multi_class='ovo')
-    f1 = f1_score(targets, np.argmax(predictions, axis=-1), average='weighted')
+    major_predictions = np.argmax(predictions, axis=-1)
+    f1 = f1_score(targets, major_predictions, average='weighted')
+    accuracy = accuracy_score(targets, major_predictions)
 
     print(f'Composed ROC AUC is {round(roc, 3)}')
     print(f'Composed LOG LOSS is {round(loss, 3)}')
     print(f'Composed F1 is {round(f1, 3)}')
+    print(f'Composed accuracy is {round(accuracy, 3)}')
 
 
 if __name__ == '__main__':
