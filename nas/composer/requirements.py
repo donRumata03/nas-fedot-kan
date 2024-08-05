@@ -192,7 +192,9 @@ class KANSplineRequirements:
     spline_order: List[int] = field(default_factory=lambda: [2, 3, 5])
     # Shouldn't depend on torch, no need for excessive hyperparameters → just use SiLU
     # base_activation: List[torch.nn.Module] = field(default_factory=lambda: [torch.nn.SiLU])
-    grid_range: List[Tuple[int, int]] = field(default_factory=lambda: [(-1, 1)])  # Auto-scaled anyway
+
+    # Auto-scaled anyway
+    # grid_range: List[Tuple[int, int]] = field(default_factory=lambda: [(-1, 1)])
 
 
 @dataclass
@@ -218,21 +220,31 @@ class KANLinearRequirements(KANSplineRequirements):
 
 @dataclass
 class KANConvRequirements(KANSplineRequirements):
-    min_n_neurons: int = 2
-    max_n_neurons: int = 32
+    min_number_of_neurons: int = 2
+    max_number_of_neurons: int = 32
     kernel_size: List[int] = field(default_factory=lambda: [3, 5])
+
+    pooling_prob: float = .5  # Nobody knows which order of magnitude this should be (or pretends so) → it's set to .5
+    pooling_kernel_size: List[int] = field(default_factory=lambda: [2, ])  # Could be 3?
 
     # Padding would be computed automatically form kernel size to maintain the feature map size:
     # padding: List[int] = field(default_factory=lambda: [0, 1])
 
+    filter_size_factor: int = 3
+
     def __post_init__(self):
-        if self.max_n_neurons < self.min_n_neurons:
+        if self.max_number_of_neurons < self.min_number_of_neurons:
             raise ValueError(
                 'Min number of convolutions in requirements cannot be greater than max number of convolutions.')
-        if self.min_n_neurons < 1:
-            raise ValueError(f'Min number of convolutions = {self.min_n_neurons} is unacceptable.')
-        if self.max_n_neurons < 1:
-            raise ValueError(f'Max number of convolutions = {self.max_n_neurons} is unacceptable.')
+        if self.min_number_of_neurons < 1:
+            raise ValueError(f'Min number of convolutions = {self.min_number_of_neurons} is unacceptable.')
+        if self.max_number_of_neurons < 1:
+            raise ValueError(f'Max number of convolutions = {self.max_number_of_neurons} is unacceptable.')
+
+    @property
+    def neurons_num(self) -> List[int]:
+        return get_list_of_multiples_of_power_of_2(self.min_number_of_neurons, self.max_number_of_neurons,
+                                                   self.filter_size_factor)
 
 
 @dataclass

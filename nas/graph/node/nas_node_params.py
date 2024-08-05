@@ -9,7 +9,7 @@ from nas.repository.layer_types_enum import LayersPoolEnum
 random.seed(1)
 
 if TYPE_CHECKING:
-    from nas.composer.requirements import ModelRequirements
+    from nas.composer.requirements import ModelRequirements, KANSplineRequirements
 
 random.seed(1)
 
@@ -31,6 +31,7 @@ class NasNodeFactory:
         supportable_nodes = {'conv2d': self.conv2d,
                              'kan_conv2d': self.kan_conv2d,
                              'linear': self.linear,
+                             'kan_linear': self.kan_linear,
                              'dropout': self.dropout,
                              'pooling2d': self.pooling,
                              'adaptive_pool2d': self.ada_pool2d,
@@ -42,12 +43,21 @@ class NasNodeFactory:
             raise ValueError(f'Wrong node name {node_name}')
 
         layer_params = layer_params_fun(self.global_requirements, **params)
+
+        # BatchNorm insertion where appropriate
         bn_prob = .5 if self.global_requirements is None else self.global_requirements.fc_requirements.batch_norm_prob
         bn_cond1 = random.uniform(0, 1) < bn_prob or 'momentum' in params.items()
         bn_cond2 = node_name not in [LayersPoolEnum.adaptive_pool2d, LayersPoolEnum.pooling2d,
-                                     LayersPoolEnum.flatten, LayersPoolEnum.dropout, LayersPoolEnum.batch_norm2d]
+                                     LayersPoolEnum.flatten, LayersPoolEnum.dropout, LayersPoolEnum.batch_norm2d,
+                                     LayersPoolEnum.kan_linear, LayersPoolEnum.kan_conv2d]
         if bn_cond1 and bn_cond2:
             layer_params = {**layer_params, **self.batch_normalization(self.global_requirements, **params)}
+
+        # After-layer pooling for KANConv
+        pooling_prob = 0.5 if self.global_requirements is None else self.global_requirements.kan_conv_requirements.pooling_prob
+        if node_name == LayersPoolEnum.kan_conv2d and random.random() < pooling_prob:
+            layer_params["pooling_kernel_size"] = random.choice(
+                self.global_requirements.kan_conv_requirements.pooling_kernel_size)
 
         return layer_params
 
@@ -74,25 +84,31 @@ class NasNodeFactory:
         return params
 
     @staticmethod
+    def _kan_spline_requirements(requirements: KANSplineRequirements = None, **kwargs):
+        # Grid size, spline order:
+        params = {}
+        if requirements is not None:
+            grid_size = random.choice(requirements.grid_size)
+            spline_order = random.choice(requirements.spline_order)
+        else:
+            grid_size = kwargs.get('grid_size')
+            spline_order = kwargs.get('spline_order')
+        params['grid_size'] = grid_size
+        params['spline_order'] = spline_order
+        return params
+
+    @staticmethod
     def kan_conv2d(requirements: ModelRequirements = None, **kwargs) -> Dict:
         params = {}
         if requirements is not None:
-            out_shape = random.choice(requirements.conv_requirements.neurons_num)
-            kernel_size = random.choice(requirements.conv_requirements.kernel_size)
-            activation = random.choice(requirements.fc_requirements.activation_types).value
-            stride = random.choice(requirements.conv_requirements.conv_strides)
-            padding = _get_padding(random.choice(requirements.conv_requirements.padding), kernel_size)
+            out_shape = random.choice(requirements.kan_conv_requirements.neurons_num)
+            kernel_size = random.choice(requirements.kan_conv_requirements.kernel_size)
         else:
             out_shape = kwargs.get('out_shape')
             kernel_size = kwargs.get('kernel_size')
-            activation = kwargs.get('activation', 'relu')
-            stride = kwargs.get('stride', [1, 1])
-            padding = kwargs.get('padding', 0)
         params['out_shape'] = out_shape
         params['kernel_size'] = kernel_size
-        params['activation'] = activation
-        params['stride'] = stride
-        params['padding'] = padding
+        params.update(NasNodeFactory._kan_spline_requirements(requirements.kan_conv_requirements, **kwargs))
         return params
 
     @staticmethod
@@ -138,6 +154,17 @@ class NasNodeFactory:
             activation = kwargs.get('activation', 'relu')
         params['out_shape'] = out_shape
         params['activation'] = activation
+        return params
+
+    @staticmethod
+    def kan_linear(requirements: ModelRequirements = None, **kwargs) -> Dict:
+        params = {}
+        if requirements is not None:
+            out_shape = random.choice(requirements.kan_linear_requirements.neurons_num)
+        else:
+            out_shape = kwargs.get('out_shape')
+        params['out_shape'] = out_shape
+        params.update(NasNodeFactory._kan_spline_requirements(requirements.kan_linear_requirements, **kwargs))
         return params
 
     @staticmethod

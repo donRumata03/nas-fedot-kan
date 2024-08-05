@@ -61,11 +61,12 @@ class FixedGraphGenerator(GraphGenerator):
 
 def generate_kkan_from_paper() -> NasGraph:
     n_convs = 5
+    conv_layer_type = LayersPoolEnum.conv2d
     node_types = [
-        LayersPoolEnum.conv2d,
+        conv_layer_type,
         LayersPoolEnum.pooling2d,
 
-        LayersPoolEnum.conv2d,
+        conv_layer_type,
         LayersPoolEnum.pooling2d,
 
         # LayersPoolEnum.adaptive_pool2d,
@@ -76,7 +77,7 @@ def generate_kkan_from_paper() -> NasGraph:
     parent_node = None
     shape = 1
     for node_type in node_types:
-        if node_type == LayersPoolEnum.conv2d:
+        if node_type == conv_layer_type:
             shape *= n_convs
 
         param_variants = {
