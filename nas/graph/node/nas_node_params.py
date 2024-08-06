@@ -59,6 +59,8 @@ class NasNodeFactory:
             layer_params["pooling_kernel_size"] = random.choice(
                 self.global_requirements.kan_conv_requirements.pooling_kernel_size)
 
+            layer_params["pooling_mode"] = random.choice(["max", "average"])
+
         return layer_params
 
     @staticmethod

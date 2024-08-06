@@ -146,11 +146,16 @@ class NASTorchModel(torch.nn.Module):
 
                 self.__setattr__(f'node_{node.uid}', layer)
                 if layer_func.get('normalization'):
-                    output_shape = node.parameters[
-                        'out_shape']
+                    output_shape = node.parameters['out_shape']
                     normalization_module = layer_func['normalization'](node, input_dim=output_shape)
                     self.__setattr__(f'node_{node.uid}_n', normalization_module)
                     node.content["parameter_count"] += count_parameters(normalization_module)
+
+                if layer_func.get('pooling'):
+                    output_shape = node.parameters['out_shape']
+                    pooling_module = layer_func['pooling'](node, input_dim=output_shape)
+                    self.__setattr__(f'node_{node.uid}_p', pooling_module)
+                    node.content["parameter_count"] += count_parameters(pooling_module)
 
                 visited_node_outputs[node.uid] = output_tensor
                 visited_nodes.add(node)
@@ -181,12 +186,13 @@ class NASTorchModel(torch.nn.Module):
             layer_inputs = [_forward_pass_one_layer_recursive(parent) for parent in node.nodes_from] \
                 if node.nodes_from else [inputs]
             output = layer_state_dict(layer_inputs[0])
-            if hasattr(self, f'{layer_name}_n'):
-                output = self.__getattr__(f'{layer_name}_n')(output)
+            for supplementary_module in [f'{layer_name}_n', f'{layer_name}_p']:
+                if hasattr(self, supplementary_module):
+                    output = self.__getattr__(supplementary_module)(output)
             if len(node.nodes_from) > 1:
                 shortcut = layer_inputs[-1]
                 output += shortcut
-            if node.name not in ['pooling2d', 'dropout', 'adaptive_pool2d', 'flatten']:
+            if node.name not in ['pooling2d', 'dropout', 'adaptive_pool2d', 'flatten', 'kan', 'kan_linear']:
                 output = TorchLayerFactory.get_activation(node.parameters['activation'])()(output)
             if node in node_to_save.keys():
                 node_to_save[node] = {'output': output,
