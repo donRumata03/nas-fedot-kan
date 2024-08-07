@@ -104,9 +104,9 @@ class ConvGraphMaker(GraphGenerator):
             graph = NasGraph()
             parent_node = None
             graph_nodes = self.initial_struct if self.initial_struct else generation_function()
-            for i, node in enumerate(graph_nodes):
+            for node in graph_nodes:
                 node = self._add_node(node, parent_node)
-                parent_node = [node] if i != 1 else [node, graph.nodes[0]]  # skip connection for the second node
+                parent_node = [node]
                 graph.add_node(node)
             if self.check_generated_graph(graph):
                 return graph
