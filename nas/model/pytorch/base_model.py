@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from nas.graph.base_graph import NasGraph
 from nas.graph.node.nas_graph_node import NasNode
 from nas.model.model_interface import NeuralSearchModel
+from nas.model.pytorch.layers.kan_convolutional.KANLinear import KANLinear
 from nas.model.pytorch.layers.layer_initializer import TorchLayerFactory
 
 WEIGHTED_NODE_NAMES = ['conv2d', 'linear']
@@ -162,14 +163,28 @@ class NASTorchModel(torch.nn.Module):
                 weighted_layer_output_shape = weighted_layer_output_tensor.shape[1:]
                 node.content["dims"] = present_node_dim_info(input_shape, weighted_layer_output_shape, output_shape)
 
-
                 visited_node_outputs[node.uid] = current_output_tensor
                 visited_nodes.add(node)
 
             return visited_node_outputs[node.uid]
 
         _init_layer(graph.root_node)
-        self.output_layer = torch.nn.Linear(graph.root_node.content["dims"]["output_dim"], out_shape)
+
+        # Use root node to extract output layer parameters (a dirty hack)
+        # All nodes have this parameter in KAN case but only for the root they are applied
+        node_with_output_parameters = graph.root_node
+        if node_with_output_parameters.parameters["output_node_grid_size"]:
+            # It's a parameters for KAN output node → mode is KAN
+            grid_size = node_with_output_parameters.parameters["output_node_grid_size"]
+            spline_order = node_with_output_parameters.parameters["output_node_spline_order"]
+            self.output_layer = KANLinear(
+                in_features=graph.root_node.content["dims"]["output_dim"],
+                out_features=out_shape,
+                grid_size=grid_size,
+                spline_order=spline_order
+            )
+        else:
+            self.output_layer = torch.nn.Linear(graph.root_node.content["dims"]["output_dim"], out_shape)
 
     def forward(self, inputs: torch.Tensor):
         visited_nodes = set()

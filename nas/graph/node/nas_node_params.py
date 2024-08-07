@@ -61,6 +61,11 @@ class NasNodeFactory:
 
             layer_params["pooling_mode"] = random.choice(["max", "average"])
 
+        # Output node parameters that become active only for the root node (FIXME)
+        if node_name == LayersPoolEnum.kan_linear:
+            layer_params["output_node_grid_size"] = random.choice(self.global_requirements.kan_linear_requirements.grid_size)
+            layer_params["output_node_spline_order"] = random.choice(self.global_requirements.kan_linear_requirements.spline_order)
+
         return layer_params
 
     @staticmethod
