@@ -172,8 +172,8 @@ class NASTorchModel(torch.nn.Module):
 
         # Use root node to extract output layer parameters (a dirty hack)
         # All nodes have this parameter in KAN case but only for the root they are applied
-        node_with_output_parameters = graph.root_node
-        if node_with_output_parameters.parameters["output_node_grid_size"]:
+        node_with_output_parameters = graph.get_input_node()
+        if "output_node_grid_size" in node_with_output_parameters.parameters:
             # It's a parameters for KAN output node → mode is KAN
             grid_size = node_with_output_parameters.parameters["output_node_grid_size"]
             spline_order = node_with_output_parameters.parameters["output_node_spline_order"]

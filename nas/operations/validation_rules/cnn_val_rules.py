@@ -58,7 +58,6 @@ def model_has_no_conv_layers(graph: NasGraph):
 def model_has_dim_mismatch(graph: NasGraph):
     try:
         with torch.no_grad():
-            # TODO: resolve the need of divisibility and validate with 3 channels, too
             input_shape = [
                 [28, 28, 1],
                 # [64, 64, 1]
@@ -70,7 +69,7 @@ def model_has_dim_mismatch(graph: NasGraph):
                     m.forward(torch.rand([2, *shape[::-1]]))
                 except IndexError:
                     raise ValueError(f'{ERROR_PREFIX} graph has dimension conflict.')
-    except RuntimeError as e:
+    except Exception as e:
         import traceback
         traceback.print_exc()
         raise ValueError(f'{ERROR_PREFIX} graph has dimension conflict.')

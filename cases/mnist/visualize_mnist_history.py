@@ -5,7 +5,7 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from nas.utils.utils import project_root
 
-path = project_root() / "_results/debug/master_2/2024-07-31_23-53-19/history.json"
+path = project_root() / "_results/debug/master_2/2024-08-07_13-28-51/history.json"
 
 history = OptHistory.load(path)
 

@@ -113,10 +113,11 @@ def build_mnist_cls(save_path=None):
     cv_folds = None
     image_side_size = 28
     batch_size = 64
-    epochs = 1
-    optimization_epochs = 1
-    num_of_generations = 3
-    population_size = 3
+    epochs = 3
+    optimization_epochs = 2
+    num_of_generations = 10
+    initial_population_size = 5
+    max_population_size = 7
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -136,7 +137,7 @@ def build_mnist_cls(save_path=None):
     dataset_path = pathlib.Path(project_root(), 'cases/mnist/mnist_dataset')
     data = InputDataNN.data_from_folder(dataset_path, task)
 
-    conv_layers_pool = [LayersPoolEnum.kan_conv2d,]
+    conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
@@ -146,9 +147,15 @@ def build_mnist_cls(save_path=None):
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              max_number_of_neurons=128)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=2, max_number_of_neurons=32,
+        min_number_of_neurons=2, max_number_of_neurons=64,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
+
+    kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
+                                                                     max_number_of_neurons=128)
+    kan_conv_requirements = nas_requirements.KANConvRequirements(
+        min_number_of_neurons=2, max_number_of_neurons=64
+    )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
                                                             color_mode='grayscale',
@@ -156,13 +163,15 @@ def build_mnist_cls(save_path=None):
                                                             conv_requirements=conv_requirements,
                                                             fc_requirements=fc_requirements,
                                                             primary=conv_layers_pool,
+                                                            kan_conv_requirements=kan_conv_requirements,
+                                                            kan_linear_requirements=kan_linear_requirements,
                                                             secondary=[LayersPoolEnum.kan_linear],
                                                             epochs=epochs,
                                                             batch_size=batch_size,
-                                                            min_nn_depth=1,
+                                                            min_nn_depth=2,
                                                             max_nn_depth=3,
                                                             min_num_of_conv_layers=2,
-                                                            max_num_of_conv_layers=3)
+                                                            max_num_of_conv_layers=4)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
@@ -202,7 +211,8 @@ def build_mnist_cls(save_path=None):
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
                                                  mutation_types=mutations,
                                                  crossover_types=[CrossoverTypesEnum.subtree],
-                                                 pop_size=population_size,
+                                                 pop_size=initial_population_size,
+                                                 max_pop_size=max_population_size,
                                                  regularization_type=RegularizationTypesEnum.none,
                                                  multi_objective=True)
 

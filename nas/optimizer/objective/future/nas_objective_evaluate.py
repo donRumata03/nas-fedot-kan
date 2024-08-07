@@ -44,7 +44,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         self._log = default_log(self)
 
     def evaluate(self, graph: NasGraph) -> Fitness:
-        # return MultiObjFitness([random.random(), list(self._objective.metrics)[-1][1](graph)])
+        return MultiObjFitness([random.random(), list(self._objective.metrics)[-1][1](graph)])
         train_data, test_data = random_split(self._dataset, [.8, .2])
         gc.collect()
         torch.cuda.empty_cache()
