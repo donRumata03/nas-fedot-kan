@@ -145,14 +145,14 @@ def build_mnist_cls(save_path=None):
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
-                                                             max_number_of_neurons=128)
+                                                             max_number_of_neurons=256)
     conv_requirements = nas_requirements.ConvRequirements(
         min_number_of_neurons=2, max_number_of_neurons=64,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
     kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
-                                                                     max_number_of_neurons=128)
+                                                                     max_number_of_neurons=256)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
         min_number_of_neurons=2, max_number_of_neurons=64
     )
@@ -168,7 +168,7 @@ def build_mnist_cls(save_path=None):
                                                             secondary=[LayersPoolEnum.kan_linear],
                                                             epochs=epochs,
                                                             batch_size=batch_size,
-                                                            min_nn_depth=2,
+                                                            min_nn_depth=1,  # Fc layers including last, output layer
                                                             max_nn_depth=3,
                                                             min_num_of_conv_layers=2,
                                                             max_num_of_conv_layers=4)
@@ -200,12 +200,16 @@ def build_mnist_cls(save_path=None):
                                      device='cuda' if torch.cuda.is_available() else 'cpu',
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
+    def parameter_count_complexity_metric(graph: NasGraph):
+        return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], test_data.num_classes)
+
     validation_rules = [
         filter_size_increases_monotonically,
         no_linear_layers_before_flatten,
         model_has_several_starts, model_has_no_conv_layers, model_has_wrong_number_of_flatten_layers,
         model_has_several_roots,
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
+        has_too_much_parameters(300_000, parameter_count_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
@@ -230,9 +234,6 @@ def build_mnist_cls(save_path=None):
 
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)
-
-    def parameter_count_complexity_metric(graph: NasGraph):
-        return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], test_data.num_classes)
 
     builder = ComposerBuilder(task).with_composer(NNComposer).with_optimizer(NNGraphOptimiser). \
         with_requirements(requirements).with_metrics(

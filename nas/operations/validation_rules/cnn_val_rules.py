@@ -2,6 +2,7 @@ import torch
 from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from golem.core.dag.verification_rules import ERROR_PREFIX
+from typing import Callable
 
 from nas.graph.base_graph import NasGraph
 from nas.graph.node.nas_graph_node import NasNode
@@ -71,7 +72,7 @@ def model_has_dim_mismatch(graph: NasGraph):
                     raise ValueError(f'{ERROR_PREFIX} graph has dimension conflict.')
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        # traceback.print_exc()
         raise ValueError(f'{ERROR_PREFIX} graph has dimension conflict.')
     return True
 
@@ -94,7 +95,7 @@ def filter_size_increases_monotonically(graph: NasGraph):
     def dfs(node: LinkedGraphNode, last_filter_size: int = None):
         if 'conv' in node.content['name']:
             if last_filter_size is not None and node.content['params']['out_shape'] > last_filter_size:
-                print("Filter size must increase monotonically.")
+                # print("Filter size must increase monotonically.")
                 raise ValueError(f'{ERROR_PREFIX} filter size must increase monotonically.')
             last_filter_size = node.content['params']['out_shape']
         for n in node.nodes_from:
@@ -121,3 +122,12 @@ def no_linear_layers_before_flatten(graph: NasGraph):
 
     dfs(graph.root_node)
     return True
+
+
+def has_too_much_parameters(max_allowed_parameters: int, parameter_count_complexity_metric: Callable[[NasGraph], int]):
+    def rule(graph):
+        if parameter_count_complexity_metric(graph) > max_allowed_parameters:
+            raise ValueError(f'{ERROR_PREFIX} model has too much parameters.')
+        return True
+
+    return rule

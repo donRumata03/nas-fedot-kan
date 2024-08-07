@@ -186,6 +186,10 @@ class NASTorchModel(torch.nn.Module):
         else:
             self.output_layer = torch.nn.Linear(graph.root_node.content["dims"]["output_dim"], out_shape)
 
+        # Cache the total number of parameters to the flatten node of the graph:
+        self._graph.get_singleton_node_by_name('flatten').content["total_model_parameter_count"] = count_parameters(
+            self)
+
     def forward(self, inputs: torch.Tensor):
         visited_nodes = set()
         node_to_save = dict()
