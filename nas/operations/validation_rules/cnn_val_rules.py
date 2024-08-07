@@ -64,7 +64,7 @@ def model_has_dim_mismatch(graph: NasGraph):
                 # [64, 64, 1]
             ]
             for shape in input_shape:
-                m = NeuralSearchModel(NASTorchModel).compile_model(graph, shape, 5).model
+                m = NeuralSearchModel(NASTorchModel).compile_model(graph, shape, 10).model
                 m.to('cpu')
                 try:
                     m.forward(torch.rand([2, *shape[::-1]]))

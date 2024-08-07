@@ -80,7 +80,7 @@ def batch_norm(node: NasNode, **inputs_dict):
 def supplementary_pooling(node: NasNode, **inputs_dict):
     # Just kernel size:
     kernel_size = node.parameters.get('pooling_kernel_size')
-    pool_layer = nn.MaxPool2d if node.parameters['mode'] == 'max' else nn.AvgPool2d
+    pool_layer = nn.MaxPool2d if node.parameters['pooling_mode'] == 'max' else nn.AvgPool2d
     return pool_layer(kernel_size)
 
 

@@ -136,7 +136,7 @@ def build_mnist_cls(save_path=None):
     dataset_path = pathlib.Path(project_root(), 'cases/mnist/mnist_dataset')
     data = InputDataNN.data_from_folder(dataset_path, task)
 
-    conv_layers_pool = [LayersPoolEnum.conv2d, LayersPoolEnum.pooling2d, LayersPoolEnum.adaptive_pool2d]
+    conv_layers_pool = [LayersPoolEnum.kan_conv2d,]
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
@@ -156,7 +156,7 @@ def build_mnist_cls(save_path=None):
                                                             conv_requirements=conv_requirements,
                                                             fc_requirements=fc_requirements,
                                                             primary=conv_layers_pool,
-                                                            secondary=[LayersPoolEnum.linear],
+                                                            secondary=[LayersPoolEnum.kan_linear],
                                                             epochs=epochs,
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,
@@ -213,10 +213,10 @@ def build_mnist_cls(save_path=None):
 
     # builder = ResNetBuilder(model_requirements=requirements.model_requirements, model_type='resnet_18')
 
-    # builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
-    #                          max_generation_attempts=500)
+    builder = ConvGraphMaker(requirements=requirements.model_requirements, rules=validation_rules,
+                             max_generation_attempts=500)
 
-    builder = FixedGraphGenerator(graph=generate_kkan_from_paper())
+    # builder = FixedGraphGenerator(graph=generate_kkan_from_paper())
 
     graph_generation_function = BaseGraphBuilder()
     graph_generation_function.set_builder(builder)

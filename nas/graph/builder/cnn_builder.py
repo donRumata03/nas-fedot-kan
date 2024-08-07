@@ -79,16 +79,31 @@ class ConvGraphMaker(GraphGenerator):
         graph_nodes.append(LayersPoolEnum.flatten)
         return graph_nodes
 
+    def _generate_kan_from_scratch(self):
+        total_conv_nodes = random.randint(self.requirements.min_num_of_conv_layers,
+                                          self.requirements.max_num_of_conv_layers)
+        total_fc_nodes = random.randint(self.requirements.min_nn_depth,
+                                        self.requirements.max_nn_depth)
+        zero_node = LayersPoolEnum.kan_conv2d
+        graph_nodes = [zero_node]
+        for i in range(1, total_conv_nodes):
+            graph_nodes.append(LayersPoolEnum.kan_conv2d)
+        graph_nodes.append(LayersPoolEnum.flatten)
+        for i in range(total_fc_nodes - 1):  # One is put by default and is converting to num_classes neurons
+            graph_nodes.append(LayersPoolEnum.kan_linear)
+        return graph_nodes
+
     def _add_node(self, node_to_add: LayersPoolEnum, parent_node: List[NasNode], node_name=None):
         node_params = NasNodeFactory(self.requirements).get_node_params(node_to_add)
         node = NasNode(content={'name': node_to_add.value, 'params': node_params}, nodes_from=parent_node)
         return node
 
     def build(self) -> NasGraph:
+        generation_function = self._generate_kan_from_scratch if self.requirements.is_kan() else self._generate_from_scratch
         for _ in range(self._generation_attempts):
             graph = NasGraph()
             parent_node = None
-            graph_nodes = self.initial_struct if self.initial_struct else self._generate_from_scratch()
+            graph_nodes = self.initial_struct if self.initial_struct else generation_function()
             for node in graph_nodes:
                 node = self._add_node(node, parent_node)
                 parent_node = [node]

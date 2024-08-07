@@ -57,7 +57,7 @@ def get_input_shape(node: Union[GraphNode, NasNode],
     return side_size, output_channels
 
 
-def present_node_dim_info(input_shape, output_shape) -> dict:
+def present_node_dim_info(input_shape, weighted_layer_output_shape, output_shape) -> dict:
     dim_kind = "2d" if len(output_shape) == 3 else "flatten" if len(input_shape) == 3 else "1d"
     res = {
         "dim_kind": dim_kind,
@@ -71,6 +71,7 @@ def present_node_dim_info(input_shape, output_shape) -> dict:
 
     if dim_kind == "2d":
         res["input"] = present_2d_shape_dim_info(input_shape)
+        res["weighted_layer_output_shape"] = present_2d_shape_dim_info(weighted_layer_output_shape)
         res["output"] = present_2d_shape_dim_info(output_shape)
 
     if dim_kind == "flatten":
@@ -134,15 +135,11 @@ class NASTorchModel(torch.nn.Module):
                 layer_func = TorchLayerFactory.get_layer(node)
                 input_channels = input_tensor.shape[1]
                 layer = layer_func['weighted_layer'](node, input_dim=input_channels)
-                output_tensor = layer(input_tensor)
-
-                # Cache dims data:
-                input_shape = input_tensor.shape[1:]
-                output_shape = output_tensor.shape[1:]
-                node.content["dims"] = present_node_dim_info(input_shape, output_shape)
 
                 # Cache parameter data:
                 node.content["parameter_count"] = count_parameters(layer)
+                weighted_layer_output_tensor = layer(input_tensor)
+                current_output_tensor = weighted_layer_output_tensor
 
                 self.__setattr__(f'node_{node.uid}', layer)
                 if layer_func.get('normalization'):
@@ -150,14 +147,23 @@ class NASTorchModel(torch.nn.Module):
                     normalization_module = layer_func['normalization'](node, input_dim=output_shape)
                     self.__setattr__(f'node_{node.uid}_n', normalization_module)
                     node.content["parameter_count"] += count_parameters(normalization_module)
+                    current_output_tensor = normalization_module(current_output_tensor)
 
                 if layer_func.get('pooling'):
-                    output_shape = node.parameters['out_shape']
+                    output_shape = node.parameters['out_shape']  # Normalization preserves output shape
                     pooling_module = layer_func['pooling'](node, input_dim=output_shape)
                     self.__setattr__(f'node_{node.uid}_p', pooling_module)
                     node.content["parameter_count"] += count_parameters(pooling_module)
+                    current_output_tensor = pooling_module(current_output_tensor)
 
-                visited_node_outputs[node.uid] = output_tensor
+                # Cache dims data:
+                input_shape = input_tensor.shape[1:]
+                output_shape = current_output_tensor.shape[1:]
+                weighted_layer_output_shape = weighted_layer_output_tensor.shape[1:]
+                node.content["dims"] = present_node_dim_info(input_shape, weighted_layer_output_shape, output_shape)
+
+
+                visited_node_outputs[node.uid] = current_output_tensor
                 visited_nodes.add(node)
 
             return visited_node_outputs[node.uid]
@@ -192,7 +198,7 @@ class NASTorchModel(torch.nn.Module):
             if len(node.nodes_from) > 1:
                 shortcut = layer_inputs[-1]
                 output += shortcut
-            if node.name not in ['pooling2d', 'dropout', 'adaptive_pool2d', 'flatten', 'kan', 'kan_linear']:
+            if node.name not in ['pooling2d', 'dropout', 'adaptive_pool2d', 'flatten', 'kan_conv2d', 'kan_linear']:
                 output = TorchLayerFactory.get_activation(node.parameters['activation'])()(output)
             if node in node_to_save.keys():
                 node_to_save[node] = {'output': output,
