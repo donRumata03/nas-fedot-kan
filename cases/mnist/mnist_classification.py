@@ -115,9 +115,9 @@ def build_mnist_cls(save_path=None):
     batch_size = 64
     epochs = 3
     optimization_epochs = 2
-    num_of_generations = 10
-    initial_population_size = 5
-    max_population_size = 7
+    num_of_generations = 2
+    initial_population_size = 2
+    max_population_size = 2
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
