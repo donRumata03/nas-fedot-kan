@@ -5,11 +5,21 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from nas.utils.utils import project_root
 
-path = project_root() / "_results/debug/master_2/2024-08-07_13-28-51/history.json"
+path = project_root() / "_results/debug/master_2/2024-08-07_22-54-26/history.json"
 
 history = OptHistory.load(path)
 
 print(history)
+
+# Analyze if there is a graph in the history that has arity 2 at least for one node:
+for generation in history.individuals:
+    for ind in generation:
+        graph = ind.graph
+        for node in graph.nodes:
+            if len(node.nodes_from) >= 2:
+                print(f"Arity 2 node found in graph: {graph}, {node.uid}")
+                break
+
 
 # history.show(PlotTypesEnum.operations_animated_bar)
 # history.show(PlotTypesEnum.operations_kde)
