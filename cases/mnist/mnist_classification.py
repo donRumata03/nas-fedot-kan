@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import pathlib
 import random
@@ -238,7 +239,9 @@ def build_mnist_cls(save_path=None):
     composer.set_trainer(model_trainer)
     # composer.set_dataset_builder(dataset_builder)
 
-    optimized_network = composer.compose_pipeline(mnist_train)[0]  # TODO: Fit all models from Pareto front?
+    # The actual composition #######
+    _optimizer_result = composer.compose_pipeline(mnist_train)
+    final_choices = composer.history.final_choices
 
     if save_path:
         composer.save(path=save_path)
@@ -252,8 +255,7 @@ def build_mnist_cls(save_path=None):
         # history_visualizer.operations_animated_bar(save_path='example_animation.gif', show_fitness=True)
         history_visualizer.fitness_line_interactive()
 
-    trainer = model_trainer.build([image_side_size, image_side_size, 1], num_classes,
-                                  optimized_network)
+    # Train the final choices #######
 
     # train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)
     mnist_train, mnist_val = random_split(mnist_train, [.7, .3])
@@ -265,19 +267,35 @@ def build_mnist_cls(save_path=None):
     test_dataset = DataLoader(mnist_test, batch_size=requirements.model_requirements.batch_size,
                               shuffle=False)
 
-    trainer.fit_model(train_dataset, val_data, epochs)
-    predictions, targets = trainer.predict(test_dataset)
+    final_results = {}
+    for final_choice in final_choices:
+        optimized_network = composer.optimizer.graph_generation_params.adapter.restore(final_choice.graph)
+        trainer = model_trainer.build([image_side_size, image_side_size, 1], num_classes,
+                                      optimized_network)
+        trainer.fit_model(train_dataset, val_data, epochs)
+        predictions, targets = trainer.predict(test_dataset)
 
-    loss = log_loss(targets, predictions)
-    roc = roc_auc_score(targets, predictions, multi_class='ovo')
-    major_predictions = np.argmax(predictions, axis=-1)
-    f1 = f1_score(targets, major_predictions, average='weighted')
-    accuracy = accuracy_score(targets, major_predictions)
+        loss = log_loss(targets, predictions)
+        roc = roc_auc_score(targets, predictions, multi_class='ovo')
+        major_predictions = np.argmax(predictions, axis=-1)
+        f1 = f1_score(targets, major_predictions, average='weighted')
+        accuracy = accuracy_score(targets, major_predictions)
 
-    print(f'Composed ROC AUC is {round(roc, 3)}')
-    print(f'Composed LOG LOSS is {round(loss, 3)}')
-    print(f'Composed F1 is {round(f1, 3)}')
-    print(f'Composed accuracy is {round(accuracy, 3)}')
+        print(f'Composed ROC AUC of {final_choice.uid} is {round(roc, 3)}')
+        print(f'Composed LOG LOSS of {final_choice.uid} is {round(loss, 3)}')
+        print(f'Composed F1 of {final_choice.uid} is {round(f1, 3)}')
+        print(f'Composed accuracy of {final_choice.uid} is {round(accuracy, 3)}')
+
+        final_results[final_choice.uid] = {
+            'roc_auc': roc,
+            'log_loss': loss,
+            'f1': f1,
+            'accuracy': accuracy
+        }
+
+        # Save json:
+        with open(f'{save_path}/final_results.json', 'w') as f:
+            json.dump(final_results, f, indent=4)
 
 
 if __name__ == '__main__':
