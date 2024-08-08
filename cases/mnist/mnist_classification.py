@@ -116,6 +116,7 @@ def generate_kkan_from_paper() -> NasGraph:
 def build_mnist_cls(save_path=None):
     visualize = False
     cv_folds = None
+    num_classes = 10
     image_side_size = 28
     batch_size = 128
     epochs = 3
@@ -131,23 +132,19 @@ def build_mnist_cls(save_path=None):
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
     def one_hot_encode(target):
-        return torch.nn.functional.one_hot(torch.tensor(target), num_classes=10).float()
+        return torch.nn.functional.one_hot(torch.tensor(target), num_classes=num_classes).float()
 
     mnist_path = project_root() / "cases/mnist"
     mnist_train = MNIST(root=mnist_path, train=True, download=True, transform=transform,
                         target_transform=one_hot_encode)
     mnist_test = MNIST(root=mnist_path, train=False, download=True, transform=transform,
                        target_transform=one_hot_encode)
-
-    dataset_path = pathlib.Path(project_root(), 'cases/mnist/mnist_dataset')
-    data = InputDataNN.data_from_folder(dataset_path, task)
+    assert num_classes == len(mnist_train.classes)
 
     conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
-
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              max_number_of_neurons=256)
@@ -164,7 +161,7 @@ def build_mnist_cls(save_path=None):
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
                                                             color_mode='grayscale',
-                                                            num_of_classes=data.num_classes,
+                                                            num_of_classes=num_classes,
                                                             conv_requirements=conv_requirements,
                                                             fc_requirements=fc_requirements,
                                                             primary=conv_layers_pool,
@@ -192,21 +189,12 @@ def build_mnist_cls(save_path=None):
                                                            max_arity=2  # For the shortcut case
                                                            )
 
-    data_preprocessor = Preprocessor(
-        transformations=[
-            MinMaxScaler(train_data.subset_indices(random.sample(list(range(train_data.features.shape[0])), 100))),
-            MakeSingleChannel()
-        ]
-    )
-    dataset_builder = ImageDatasetBuilder(dataset_cls=TorchDataset, image_size=(image_side_size, image_side_size),
-                                          shuffle=True).set_data_preprocessor(data_preprocessor)
-
     model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel,
                                      device='cuda' if torch.cuda.is_available() else 'cpu',
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
     def parameter_count_complexity_metric(graph: NasGraph):
-        return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], test_data.num_classes)
+        return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], num_classes)
 
     validation_rules = [
         filter_size_increases_monotonically,
@@ -264,7 +252,7 @@ def build_mnist_cls(save_path=None):
         # history_visualizer.operations_animated_bar(save_path='example_animation.gif', show_fitness=True)
         history_visualizer.fitness_line_interactive()
 
-    trainer = model_trainer.build([image_side_size, image_side_size, 1], test_data.num_classes,
+    trainer = model_trainer.build([image_side_size, image_side_size, 1], num_classes,
                                   optimized_network)
 
     # train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)
