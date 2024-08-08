@@ -188,8 +188,8 @@ class ConvRequirements(BaseLayerRequirements):
 
 @dataclass
 class KANSplineRequirements:
-    grid_size: List[int] = field(default_factory=lambda: [3, 5, 10])
-    spline_order: List[int] = field(default_factory=lambda: [2, 3, 5])
+    grid_size: List[int] = field(default_factory=lambda: [5, 10])  # 3?
+    spline_order: List[int] = field(default_factory=lambda: [3,])  # 2, 5?
     # Shouldn't depend on torch, no need for excessive hyperparameters → just use SiLU
     # base_activation: List[torch.nn.Module] = field(default_factory=lambda: [torch.nn.SiLU])
 

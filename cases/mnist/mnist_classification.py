@@ -117,12 +117,12 @@ def build_mnist_cls(save_path=None):
     visualize = False
     cv_folds = None
     image_side_size = 28
-    batch_size = 64
+    batch_size = 128
     epochs = 3
-    optimization_epochs = 2
-    num_of_generations = 2
-    initial_population_size = 2
-    max_population_size = 2
+    optimization_epochs = 1
+    num_of_generations = 4
+    initial_population_size = 4
+    max_population_size = 4
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -156,10 +156,10 @@ def build_mnist_cls(save_path=None):
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
-    kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
-                                                                     max_number_of_neurons=256)
+    kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=16,
+                                                                     max_number_of_neurons=128)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
-        min_number_of_neurons=2, max_number_of_neurons=64
+        min_number_of_neurons=2, max_number_of_neurons=32
     )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
@@ -174,13 +174,13 @@ def build_mnist_cls(save_path=None):
                                                             epochs=epochs,
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,  # Fc layers including last, output layer
-                                                            max_nn_depth=3,
+                                                            max_nn_depth=2,
                                                             min_num_of_conv_layers=2,
-                                                            max_num_of_conv_layers=4)
+                                                            max_num_of_conv_layers=3)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=1),
+                                                           timeout=datetime.timedelta(hours=5),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
@@ -214,7 +214,7 @@ def build_mnist_cls(save_path=None):
         model_has_several_starts, model_has_no_conv_layers, model_has_wrong_number_of_flatten_layers,
         model_has_several_roots,
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
-        has_too_much_parameters(300_000, parameter_count_complexity_metric)
+        has_too_much_parameters(200_000, parameter_count_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
