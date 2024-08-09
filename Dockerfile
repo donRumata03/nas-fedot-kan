@@ -12,7 +12,7 @@ RUN pip uninstall opencv-python
 RUN pip install opencv-python-headless==4.5.5.64
 
 RUN apt update
-RUN apt install tmux
+RUN DEBIAN_FRONTEND=noninteractive apt install tmux
 
 # Copy the rest of the application code into the container
 COPY . /app
