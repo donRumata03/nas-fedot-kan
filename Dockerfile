@@ -7,7 +7,7 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
-RUN pip install opencv-python==4.8.0.74
+# RUN pip install opencv-python==4.8.0.74
 
 # Copy the rest of the application code into the container
 COPY . /app
