@@ -114,23 +114,26 @@ def get_flops_from_graph(graph: NasGraph, in_shape, out_shape) -> int:
     flop_stat = get_flops_obj_from_model(m, in_shape)
     # Cache the total number of flops to the flatten node of the graph:
     flatten_node = graph.get_singleton_node_by_name('flatten')
-    flatten_node.content["total_model_flops"] = flop_stat.total()
-    # Also set flops by layer type:
-    flatten_node.content["flops_by_layer"] = {}
-    for k, v in flop_stat.by_operator().items():
-        flatten_node.content["flops_by_layer"][k] = v
-    return flop_stat.total()
+    flatten_node.content["total_model_flops"] = flop_stat
+    # # Also set flops by layer type:
+    # flatten_node.content["flops_by_layer"] = {}
+    # for k, v in flop_stat.by_operator().items():
+    #     flatten_node.content["flops_by_layer"][k] = v
+    return flop_stat
 
 
-def get_flops_obj_from_model(model: nn.Module, in_shape) -> FlopCountAnalysis:
+def get_flops_obj_from_model(model: nn.Module, in_shape) -> int:
     input = torch.rand([2, *in_shape[::-1]])
     # flops = FlopCountAnalysis(model, input)
-    macs, params = profile(model, inputs=(input, ))
-    print(f"MACs: {macs}, params: {params}")
-    from thop import clever_format
-    macs, params = clever_format([macs, params], "%.3f")
-    print(f"MACs: {macs}, params: {params}")
+    # macs, params = get_model_complexity_info(model, tuple(input.shape), as_strings=True, backend='pytorch',
+    #                                          print_per_layer_stat=True, verbose=True)
+    # print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+    # print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
+    macs, params = get_model_complexity_info(model, tuple(input.shape[1:]), as_strings=False, backend='aten',
+                                             print_per_layer_stat=False, verbose=False)
+    print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+    print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
     # print(flops.by_module())
     # print(flops.by_operator())
@@ -138,7 +141,7 @@ def get_flops_obj_from_model(model: nn.Module, in_shape) -> FlopCountAnalysis:
     #     print(k, v)
     # print(flops.by_module_and_operator())
 
-    return None
+    return macs
 
 
 class NASTorchModel(torch.nn.Module):

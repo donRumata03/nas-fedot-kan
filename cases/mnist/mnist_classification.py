@@ -68,7 +68,7 @@ class FixedGraphGenerator(GraphGenerator):
 
 def generate_kkan_from_paper() -> NasGraph:
     n_convs = 5
-    conv_layer_type = LayersPoolEnum.conv2d
+    conv_layer_type = LayersPoolEnum.kan_conv2d
     node_types = [
         conv_layer_type,
         LayersPoolEnum.pooling2d,
@@ -88,12 +88,16 @@ def generate_kkan_from_paper() -> NasGraph:
             shape *= n_convs
 
         param_variants = {
-            'conv2d': {
+            'kan_conv2d': {
                 'out_shape': shape,
                 'kernel_size': 3,
                 'activation': 'tanh',
                 'stride': 1,
-                'padding': 1
+                'padding': 1,
+                'grid_size': 5,
+                'spline_order': 3,
+                'output_node_grid_size': 10,
+                'output_node_spline_order': 3
             },
             'pooling2d': {
                 'pool_size': 2,
@@ -120,14 +124,14 @@ def build_mnist_cls(save_path=None):
     cv_folds = None
     num_classes = 10
     image_side_size = 28
-    batch_size = 128
+    batch_size = 256
     epochs = 3
     optimization_epochs = 2
-    num_of_generations = 6
-    initial_population_size = 4
-    max_population_size = 4
+    num_of_generations = 3
+    initial_population_size = 3
+    max_population_size = 3
 
-    # print(get_flops_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1], num_classes))
+    print(get_flops_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1], num_classes))
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -210,7 +214,7 @@ def build_mnist_cls(save_path=None):
         model_has_several_roots,
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
         # has_too_much_parameters(500_000, parameter_count_complexity_metric),
-        has_too_much_flops(2_000_000, flops_complexity_metric)
+        has_too_much_flops(3_000_000, flops_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
