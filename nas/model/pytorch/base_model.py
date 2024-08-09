@@ -18,6 +18,9 @@ from nas.model.pytorch.layers.kan_convolutional.KANLinear import KANLinear
 from nas.model.pytorch.layers.layer_initializer import TorchLayerFactory
 
 from fvcore.nn import FlopCountAnalysis
+from thop import profile
+
+from ptflops import get_model_complexity_info
 
 WEIGHTED_NODE_NAMES = ['conv2d', 'linear']
 
@@ -121,14 +124,21 @@ def get_flops_from_graph(graph: NasGraph, in_shape, out_shape) -> int:
 
 def get_flops_obj_from_model(model: nn.Module, in_shape) -> FlopCountAnalysis:
     input = torch.rand([2, *in_shape[::-1]])
-    flops = FlopCountAnalysis(model, input)
+    # flops = FlopCountAnalysis(model, input)
+    macs, params = profile(model, inputs=(input, ))
+    print(f"MACs: {macs}, params: {params}")
+    from thop import clever_format
+    macs, params = clever_format([macs, params], "%.3f")
+    print(f"MACs: {macs}, params: {params}")
+
+
     # print(flops.by_module())
     # print(flops.by_operator())
     # for k, v in flops.by_operator().items():
     #     print(k, v)
     # print(flops.by_module_and_operator())
 
-    return flops
+    return None
 
 
 class NASTorchModel(torch.nn.Module):
