@@ -11,7 +11,8 @@ from golem.core.log import default_log
 from golem.core.optimisers.fitness import Fitness, SingleObjFitness, MultiObjFitness
 from golem.core.optimisers.objective import ObjectiveEvaluate, Objective
 from golem.core.optimisers.objective.objective import to_fitness
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset
+from nas.utils.random_split_hack import random_split
 
 from nas.composer.requirements import NNComposerRequirements
 from nas.data.dataset.builder import BaseNNDatasetBuilder

@@ -27,7 +27,8 @@ from golem.core.optimisers.optimizer import GraphGenerationParams
 from sklearn.metrics import log_loss, roc_auc_score, f1_score, accuracy_score
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
+from nas.utils.random_split_hack import random_split
 from torchvision.datasets import MNIST
 from torchvision.transforms import transforms
 
