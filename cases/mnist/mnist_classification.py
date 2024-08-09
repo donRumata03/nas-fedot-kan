@@ -45,7 +45,7 @@ from nas.graph.builder.resnet_builder import ResNetBuilder
 from nas.graph.node.nas_graph_node import NasNode
 from nas.graph.node.node_factory import NNNodeFactory
 from nas.model.constructor import ModelConstructor
-from nas.model.pytorch.base_model import compute_total_graph_parameters, get_flops_from_graph
+from nas.model.pytorch.base_model import compute_total_graph_parameters, get_flops_from_graph, get_time_from_graph
 from nas.operations.validation_rules.cnn_val_rules import *
 from nas.optimizer.objective.nas_cnn_optimiser import NNGraphOptimiser
 from nas.repository.layer_types_enum import LayersPoolEnum
@@ -197,15 +197,23 @@ def build_mnist_cls(save_path=None):
                                                            max_arity=2  # For the shortcut case
                                                            )
 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel,
-                                     device='cuda' if torch.cuda.is_available() else 'cpu',
+                                     device=device,
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
+
+    basic_graph_time = get_time_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1],
+                                           num_classes, device)
+    print("Basic graph time: ", basic_graph_time)
 
     def parameter_count_complexity_metric(graph: NasGraph):
         return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], num_classes)
 
     def flops_complexity_metric(graph: NasGraph):
         return get_flops_from_graph(graph, [image_side_size, image_side_size, 1], num_classes)
+
+    def time_complexity_metric(graph: NasGraph):
+        return get_time_from_graph(graph, [image_side_size, image_side_size, 1], num_classes, device)
 
     validation_rules = [
         filter_size_increases_monotonically,
@@ -214,7 +222,8 @@ def build_mnist_cls(save_path=None):
         model_has_several_roots,
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
         # has_too_much_parameters(500_000, parameter_count_complexity_metric),
-        has_too_much_flops(3_000_000, flops_complexity_metric)
+        # has_too_much_flops(3_000_000, flops_complexity_metric)
+        has_too_much_time(basic_graph_time * 3, time_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,

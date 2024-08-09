@@ -140,3 +140,12 @@ def has_too_much_flops(max_allowed_flops: int, flops_complexity_metric: Callable
         return True
 
     return rule
+
+
+def has_too_much_time(max_allowed_time: float, time_complexity_metric: Callable[[NasGraph], float]):
+    def rule(graph: NasGraph):
+        if time_complexity_metric(graph) > max_allowed_time:
+            raise ValueError(f'{ERROR_PREFIX} model has too much time complexity.')
+        return True
+
+    return rule

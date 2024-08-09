@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import timeit
 from typing import Union, Optional, Tuple, List, Dict, Any
 
 import numpy as np
@@ -139,6 +140,15 @@ def get_flops_obj_from_model(model: nn.Module, in_shape) -> int:
     # print(flops.by_module_and_operator())
 
     return 0
+
+
+def get_time_from_graph(graph: NasGraph, in_shape, out_shape, device) -> float:
+    model = NeuralSearchModel(NASTorchModel).compile_model(graph, in_shape, out_shape).model.to(device)
+    example_input = torch.rand([2, *in_shape[::-1]]).to(device)
+
+    res = timeit.timeit(lambda: model(example_input), number=2)
+    print("time: ", res)
+    return res
 
 
 class NASTorchModel(torch.nn.Module):
