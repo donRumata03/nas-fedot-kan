@@ -124,7 +124,7 @@ def build_mnist_cls(save_path=None):
     cv_folds = None
     num_classes = 10
     image_side_size = 28
-    batch_size = 256
+    batch_size = 128
     epochs = 3
     optimization_epochs = 2
     num_of_generations = 3
@@ -223,7 +223,7 @@ def build_mnist_cls(save_path=None):
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
         # has_too_much_parameters(500_000, parameter_count_complexity_metric),
         # has_too_much_flops(3_000_000, flops_complexity_metric)
-        has_too_much_time(basic_graph_time * 3, time_complexity_metric)
+        has_too_much_time(basic_graph_time * 1.5, time_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
