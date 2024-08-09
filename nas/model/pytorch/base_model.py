@@ -147,7 +147,7 @@ def get_time_from_graph(graph: NasGraph, in_shape, out_shape, device, optimizati
     model = NeuralSearchModel(NASTorchModel).compile_model(graph, in_shape, out_shape).model.to(device)
     example_input = torch.rand([batch_size, *in_shape[::-1]]).to(device)
 
-    res = timeit.timeit(lambda: model(example_input), number=2)
+    res = timeit.timeit(lambda: model(example_input), number=10)
     print("time: ", res)
     return res
 

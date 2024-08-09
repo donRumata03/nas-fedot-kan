@@ -125,11 +125,11 @@ def build_mnist_cls(save_path=None):
     num_classes = 10
     image_side_size = 28
     batch_size = 128
-    epochs = 3
+    epochs = 10
     optimization_epochs = 2
-    num_of_generations = 2
-    initial_population_size = 3
-    max_population_size = 3
+    num_of_generations = 20
+    initial_population_size = 5
+    max_population_size = 10
 
     print(get_flops_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1], num_classes))
 
@@ -185,7 +185,7 @@ def build_mnist_cls(save_path=None):
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(minutes=15),
+                                                           timeout=datetime.timedelta(hours=5.5),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
