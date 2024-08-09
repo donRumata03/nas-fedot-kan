@@ -11,7 +11,10 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 RUN pip uninstall opencv-python
 RUN pip install opencv-python-headless==4.5.5.64
 
+RUN apt update
+RUN apt install tmux
 
 # Copy the rest of the application code into the container
 COPY . /app
 #CMD ["python", "cases/mnist/mnist_classification.py"]
+CMD ["git", "pull", "origin", "kan"]
