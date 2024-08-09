@@ -18,3 +18,6 @@ RUN apt install -y tmux
 COPY . /app
 #CMD ["python", "cases/mnist/mnist_classification.py"]
 CMD ["git", "pull", "origin", "kan"]
+
+# Hang the container
+CMD ["tail", "-f", "/dev/null"]
