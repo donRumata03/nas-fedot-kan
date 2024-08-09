@@ -142,9 +142,10 @@ def get_flops_obj_from_model(model: nn.Module, in_shape) -> int:
     return 0
 
 
-def get_time_from_graph(graph: NasGraph, in_shape, out_shape, device) -> float:
+def get_time_from_graph(graph: NasGraph, in_shape, out_shape, device, optimization_batch_size) -> float:
+    batch_size = 2 if device == 'cpu' else optimization_batch_size
     model = NeuralSearchModel(NASTorchModel).compile_model(graph, in_shape, out_shape).model.to(device)
-    example_input = torch.rand([2, *in_shape[::-1]]).to(device)
+    example_input = torch.rand([batch_size, *in_shape[::-1]]).to(device)
 
     res = timeit.timeit(lambda: model(example_input), number=2)
     print("time: ", res)

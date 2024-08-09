@@ -203,7 +203,7 @@ def build_mnist_cls(save_path=None):
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
     basic_graph_time = get_time_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1],
-                                           num_classes, device)
+                                           num_classes, device, batch_size)
     print("Basic graph time: ", basic_graph_time)
 
     def parameter_count_complexity_metric(graph: NasGraph):
@@ -213,7 +213,7 @@ def build_mnist_cls(save_path=None):
         return get_flops_from_graph(graph, [image_side_size, image_side_size, 1], num_classes)
 
     def time_complexity_metric(graph: NasGraph):
-        return get_time_from_graph(graph, [image_side_size, image_side_size, 1], num_classes, device)
+        return get_time_from_graph(graph, [image_side_size, image_side_size, 1], num_classes, device, batch_size)
 
     validation_rules = [
         filter_size_increases_monotonically,
