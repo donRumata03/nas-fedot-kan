@@ -1,12 +1,16 @@
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
+from golem.core.adapter import DirectAdapter
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.visualisation.opt_viz import PlotTypesEnum
 from golem.visualisation.opt_viz_extra import visualise_pareto
 from matplotlib import pyplot as plt
 
+from nas.graph.base_graph import NasGraph
+from nas.graph.node.adapter import NasNodeOperatorAdapter
+from nas.graph.node.nas_graph_node import NasNode
 from nas.utils.utils import project_root
 
-path = project_root() / "_results/debug/master_2/2024-08-07_23-43-52/history.json"
+path = project_root() / "_results/debug/master_2/2024-08-09_23-30-56/history.json"
 
 history = OptHistory.load(path)
 
@@ -21,7 +25,6 @@ for generation in history.individuals:
                 print(f"Arity 2 node found in graph: {graph}, {node.uid}")
                 break
 
-
 # Check if some of the nodes are kan_linear:
 for generation in history.individuals:
     for ind in generation:
@@ -31,17 +34,18 @@ for generation in history.individuals:
                 print(f"KANLinear node found in graph: {graph}, {node.uid}")
                 break
 
-# Plot hist of total parameter count:
+# Plot hist of total parameter count or flops for all individuals in the history:
 values = []
 for generation in history.individuals:
     for ind in generation:
-        values.append(ind.fitness.values[1])
+        # values.append(ind.fitness.values[1])
+        values.append(DirectAdapter(base_graph_class=NasGraph, base_node_class=NasNode).restore(
+            ind.graph).get_singleton_node_by_name('flatten').content["total_model_flops"])
 
 from seaborn import histplot
+
 histplot(values)
 plt.show()
-
-
 
 # history.show(PlotTypesEnum.operations_animated_bar)
 # history.show(PlotTypesEnum.operations_kde)

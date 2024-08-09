@@ -131,3 +131,12 @@ def has_too_much_parameters(max_allowed_parameters: int, parameter_count_complex
         return True
 
     return rule
+
+
+def has_too_much_flops(max_allowed_flops: int, flops_complexity_metric: Callable[[NasGraph], int]):
+    def rule(graph: NasGraph):
+        if flops_complexity_metric(graph) > max_allowed_flops:
+            raise ValueError(f'{ERROR_PREFIX} model has too much FLOPs.')
+        return True
+
+    return rule

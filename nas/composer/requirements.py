@@ -224,8 +224,8 @@ class KANConvRequirements(KANSplineRequirements):
     max_number_of_neurons: int = 32
     kernel_size: List[int] = field(default_factory=lambda: [3, 5])
 
-    pooling_prob: float = .5  # Nobody knows which order of magnitude this should be (or pretends so) → it's set to .5
-    pooling_kernel_size: List[int] = field(default_factory=lambda: [2, ])  # Could be 3?
+    pooling_prob: float = .8  # Nobody knows which order of magnitude this should be (or pretends so) → it's set to .5
+    pooling_kernel_size: List[int] = field(default_factory=lambda: [2,])  # Could be 3?
 
     # Padding would be computed automatically form kernel size to maintain the feature map size:
     # padding: List[int] = field(default_factory=lambda: [0, 1])

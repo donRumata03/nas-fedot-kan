@@ -45,7 +45,7 @@ from nas.graph.builder.resnet_builder import ResNetBuilder
 from nas.graph.node.nas_graph_node import NasNode
 from nas.graph.node.node_factory import NNNodeFactory
 from nas.model.constructor import ModelConstructor
-from nas.model.pytorch.base_model import compute_total_graph_parameters
+from nas.model.pytorch.base_model import compute_total_graph_parameters, get_flops_from_graph
 from nas.operations.validation_rules.cnn_val_rules import *
 from nas.optimizer.objective.nas_cnn_optimiser import NNGraphOptimiser
 from nas.repository.layer_types_enum import LayersPoolEnum
@@ -120,12 +120,14 @@ def build_mnist_cls(save_path=None):
     cv_folds = None
     num_classes = 10
     image_side_size = 28
-    batch_size = 512
+    batch_size = 128
     epochs = 3
     optimization_epochs = 2
     num_of_generations = 6
     initial_population_size = 4
     max_population_size = 4
+
+    # print(get_flops_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1], num_classes))
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -158,7 +160,7 @@ def build_mnist_cls(save_path=None):
     kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=16,
                                                                      max_number_of_neurons=128)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
-        min_number_of_neurons=2, max_number_of_neurons=32
+        min_number_of_neurons=4, max_number_of_neurons=32
     )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
@@ -173,7 +175,7 @@ def build_mnist_cls(save_path=None):
                                                             epochs=epochs,
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,  # Fc layers including last, output layer
-                                                            max_nn_depth=2,
+                                                            max_nn_depth=1,
                                                             min_num_of_conv_layers=2,
                                                             max_num_of_conv_layers=3)
 
@@ -198,13 +200,17 @@ def build_mnist_cls(save_path=None):
     def parameter_count_complexity_metric(graph: NasGraph):
         return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], num_classes)
 
+    def flops_complexity_metric(graph: NasGraph):
+        return get_flops_from_graph(graph, [image_side_size, image_side_size, 1], num_classes)
+
     validation_rules = [
         filter_size_increases_monotonically,
         no_linear_layers_before_flatten,
         model_has_several_starts, model_has_no_conv_layers, model_has_wrong_number_of_flatten_layers,
         model_has_several_roots,
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
-        has_too_much_parameters(200_000, parameter_count_complexity_metric)
+        # has_too_much_parameters(500_000, parameter_count_complexity_metric),
+        has_too_much_flops(2_000_000, flops_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,

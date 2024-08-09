@@ -59,7 +59,8 @@ class ConvGraphMaker(GraphGenerator):
         for rule in self._rules:
             try:
                 rule(graph)
-            except ValueError:
+            except ValueError as e:
+                print(e)
                 return False
         return True
 

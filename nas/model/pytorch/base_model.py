@@ -17,6 +17,8 @@ from nas.model.model_interface import NeuralSearchModel
 from nas.model.pytorch.layers.kan_convolutional.KANLinear import KANLinear
 from nas.model.pytorch.layers.layer_initializer import TorchLayerFactory
 
+from fvcore.nn import FlopCountAnalysis
+
 WEIGHTED_NODE_NAMES = ['conv2d', 'linear']
 
 
@@ -104,6 +106,31 @@ def compute_total_graph_parameters(graph: NasGraph, in_shape, out_shape):
     return count_parameters(m)
 
 
+def get_flops_from_graph(graph: NasGraph, in_shape, out_shape) -> int:
+    m = NeuralSearchModel(NASTorchModel).compile_model(graph, in_shape, out_shape).model
+    flop_stat = get_flops_obj_from_model(m, in_shape)
+    # Cache the total number of flops to the flatten node of the graph:
+    flatten_node = graph.get_singleton_node_by_name('flatten')
+    flatten_node.content["total_model_flops"] = flop_stat.total()
+    # Also set flops by layer type:
+    flatten_node.content["flops_by_layer"] = {}
+    for k, v in flop_stat.by_operator().items():
+        flatten_node.content["flops_by_layer"][k] = v
+    return flop_stat.total()
+
+
+def get_flops_obj_from_model(model: nn.Module, in_shape) -> FlopCountAnalysis:
+    input = torch.rand([2, *in_shape[::-1]])
+    flops = FlopCountAnalysis(model, input)
+    # print(flops.by_module())
+    # print(flops.by_operator())
+    # for k, v in flops.by_operator().items():
+    #     print(k, v)
+    # print(flops.by_module_and_operator())
+
+    return flops
+
+
 class NASTorchModel(torch.nn.Module):
     """
     Implementation of Pytorch model class for graph described architectures.
@@ -187,8 +214,16 @@ class NASTorchModel(torch.nn.Module):
             self.output_layer = torch.nn.Linear(graph.root_node.content["dims"]["output_dim"], out_shape)
 
         # Cache the total number of parameters to the flatten node of the graph:
-        self._graph.get_singleton_node_by_name('flatten').content["total_model_parameter_count"] = count_parameters(
-            self)
+        flatten_node = self._graph.get_singleton_node_by_name('flatten')
+        flatten_node.content["total_model_parameter_count"] = count_parameters(self)
+
+        # Cache the total number of flops to the flatten node of the graph:
+        # flop_stat = get_flops_obj_from_model(self, in_shape)
+        # flatten_node.content["total_model_flops"] = flop_stat.total()
+        # # Also set flops by layer type:
+        # flatten_node.content["flops_by_layer"] = {}
+        # for k, v in flop_stat.by_operator().items():
+        #     flatten_node.content["flops_by_layer"][k] = v
 
     def forward(self, inputs: torch.Tensor):
         visited_nodes = set()
