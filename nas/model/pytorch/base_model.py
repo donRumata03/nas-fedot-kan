@@ -17,9 +17,6 @@ from nas.model.model_interface import NeuralSearchModel
 from nas.model.pytorch.layers.kan_convolutional.KANLinear import KANLinear
 from nas.model.pytorch.layers.layer_initializer import TorchLayerFactory
 
-from fvcore.nn import FlopCountAnalysis
-from thop import profile
-
 from ptflops import get_model_complexity_info
 
 WEIGHTED_NODE_NAMES = ['conv2d', 'linear']
