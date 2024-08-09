@@ -127,7 +127,7 @@ def build_mnist_cls(save_path=None):
     batch_size = 128
     epochs = 3
     optimization_epochs = 2
-    num_of_generations = 3
+    num_of_generations = 2
     initial_population_size = 3
     max_population_size = 3
 
@@ -185,7 +185,7 @@ def build_mnist_cls(save_path=None):
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=8),
+                                                           timeout=datetime.timedelta(minutes=15),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
@@ -223,7 +223,7 @@ def build_mnist_cls(save_path=None):
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
         # has_too_much_parameters(500_000, parameter_count_complexity_metric),
         # has_too_much_flops(3_000_000, flops_complexity_metric)
-        has_too_much_time(basic_graph_time * 1.5, time_complexity_metric)
+        has_too_much_time(basic_graph_time * 2.5, time_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
