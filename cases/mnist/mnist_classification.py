@@ -120,10 +120,10 @@ def build_mnist_cls(save_path=None):
     cv_folds = None
     num_classes = 10
     image_side_size = 28
-    batch_size = 128
+    batch_size = 512
     epochs = 3
-    optimization_epochs = 1
-    num_of_generations = 4
+    optimization_epochs = 2
+    num_of_generations = 6
     initial_population_size = 4
     max_population_size = 4
 
