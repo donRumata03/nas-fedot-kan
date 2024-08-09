@@ -9,4 +9,4 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
 COPY . /app
-CMD ["python", "cases/mnist/mnist_classification.py"]
+#CMD ["python", "cases/mnist/mnist_classification.py"]
