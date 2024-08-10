@@ -5,6 +5,8 @@ import pathlib
 import random
 import sys
 
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+
 project_root_path = pathlib.Path(__file__).parent.parent.parent.absolute()
 print(project_root_path)
 sys.path.append(str(project_root_path))
@@ -130,6 +132,9 @@ def build_mnist_cls(save_path=None):
     num_of_generations = 20
     initial_population_size = 5
     max_population_size = 10
+
+    # history_path_instead_of_evolution = None  # For evolution
+    history_path_instead_of_evolution = project_root() / "_results/debug/master_2/2024-08-10_00-38-42/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
 
     print(get_flops_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1], num_classes))
 
@@ -260,13 +265,16 @@ def build_mnist_cls(save_path=None):
     # composer.set_dataset_builder(dataset_builder)
 
     # The actual composition #######
-    _optimizer_result = composer.compose_pipeline(mnist_train)
-    final_choices = composer.history.final_choices
+    if history_path_instead_of_evolution is None:
+        _optimizer_result = composer.compose_pipeline(mnist_train)
+        history = composer.history
+        if save_path:
+            composer.save(path=save_path)
+    else:
+        history = OptHistory.load(history_path_instead_of_evolution)
+        print(f"Loaded from history {history_path_instead_of_evolution}: {history}")
+    final_choices = history.final_choices
 
-    if save_path:
-        composer.save(path=save_path)
-
-    history = composer.history
     if visualize:
         history_visualizer = PipelineHistoryVisualizer(history)
         history_visualizer.fitness_line()
