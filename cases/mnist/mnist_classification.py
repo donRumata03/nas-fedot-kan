@@ -31,7 +31,7 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from nas.utils.random_split_hack import random_split
-from torchvision.datasets import FashionMNIST
+from torchvision.datasets import FashionMNIST, MNIST, EuroSAT
 from torchvision.transforms import transforms
 
 import nas.composer.requirements as nas_requirements
@@ -134,9 +134,8 @@ def build_mnist_cls(save_path=None):
     max_population_size = 10
 
     # history_path_instead_of_evolution = None  # For evolution
-    history_path_instead_of_evolution = project_root() / "_results/debug/master_2/2024-08-10_00-38-42/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
-
-    print(get_flops_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1], num_classes))
+    history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
+    dataset_cls = MNIST
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -148,10 +147,10 @@ def build_mnist_cls(save_path=None):
         return torch.nn.functional.one_hot(torch.tensor(target), num_classes=num_classes).float()
 
     mnist_path = project_root() / "cases/mnist"
-    mnist_train = FashionMNIST(root=mnist_path, train=True, download=True, transform=transform,
-                               target_transform=one_hot_encode)
-    mnist_test = FashionMNIST(root=mnist_path, train=False, download=True, transform=transform,
+    mnist_train = dataset_cls(root=mnist_path, train=True, download=True, transform=transform,
                               target_transform=one_hot_encode)
+    mnist_test = dataset_cls(root=mnist_path, train=False, download=True, transform=transform,
+                             target_transform=one_hot_encode)
     assert num_classes == len(mnist_train.classes)
 
     conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
