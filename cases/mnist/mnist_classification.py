@@ -153,7 +153,7 @@ def build_mnist_cls(save_path=None):
                              target_transform=one_hot_encode)
     assert num_classes == len(mnist_train.classes)
 
-    conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
+    conv_layers_pool = [LayersPoolEnum.conv2d, ]
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
@@ -179,7 +179,7 @@ def build_mnist_cls(save_path=None):
                                                             primary=conv_layers_pool,
                                                             kan_conv_requirements=kan_conv_requirements,
                                                             kan_linear_requirements=kan_linear_requirements,
-                                                            secondary=[LayersPoolEnum.kan_linear],
+                                                            secondary=[LayersPoolEnum.linear],
                                                             epochs=epochs,
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,  # Fc layers including last, output layer

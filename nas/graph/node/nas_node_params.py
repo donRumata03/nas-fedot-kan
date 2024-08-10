@@ -54,17 +54,29 @@ class NasNodeFactory:
             layer_params = {**layer_params, **self.batch_normalization(self.global_requirements, **params)}
 
         # After-layer pooling for KANConv
-        pooling_prob = 0.5 if self.global_requirements is None else self.global_requirements.kan_conv_requirements.pooling_prob
-        if node_name == LayersPoolEnum.kan_conv2d and random.random() < pooling_prob:
+        if self.global_requirements is None:
+            pooling_prob = 0
+        elif node_name == LayersPoolEnum.kan_conv2d:
+            pooling_prob = self.global_requirements.kan_conv_requirements.pooling_prob
+        elif node_name == LayersPoolEnum.conv2d:
+            pooling_prob = self.global_requirements.conv_requirements.supplementary_pooling_prob
+        else:
+            pooling_prob = 0
+
+        if random.random() < pooling_prob:
             layer_params["pooling_kernel_size"] = random.choice(
-                self.global_requirements.kan_conv_requirements.pooling_kernel_size)
+                self.global_requirements.kan_conv_requirements.pooling_kernel_size if node_name == LayersPoolEnum.kan_conv2d
+                else self.global_requirements.conv_requirements.pool_size
+            )
 
             layer_params["pooling_mode"] = random.choice(["max", "average"])
 
         # Output node parameters that become active only for the root node (FIXME)
         if node_name == LayersPoolEnum.kan_conv2d:
-            layer_params["output_node_grid_size"] = random.choice(self.global_requirements.kan_linear_requirements.grid_size)
-            layer_params["output_node_spline_order"] = random.choice(self.global_requirements.kan_linear_requirements.spline_order)
+            layer_params["output_node_grid_size"] = random.choice(
+                self.global_requirements.kan_linear_requirements.grid_size)
+            layer_params["output_node_spline_order"] = random.choice(
+                self.global_requirements.kan_linear_requirements.spline_order)
 
         return layer_params
 

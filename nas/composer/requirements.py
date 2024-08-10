@@ -118,6 +118,8 @@ class ConvRequirements(BaseLayerRequirements):
     padding: Union[str, Collection[Collection[int]]] = None
     kernel_size: Union[List[int], Tuple[int]] = None
 
+    supplementary_pooling_prob: float = .5
+
     def __post_init__(self):
         if not self.dilation_rate:
             self.dilation_rate = [1]
