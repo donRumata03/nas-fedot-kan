@@ -13,8 +13,8 @@ def conv2d(node: NasNode, **inputs_dict):
     out_shape = node.parameters.get('out_shape')
     kernel_size = node.parameters.get('kernel_size')
     stride = node.parameters.get('stride', 1)
-    padding = node.parameters.get('padding')
-    return nn.Conv2d(input_dim, out_shape, kernel_size, stride, padding)
+    _padding = node.parameters.get('padding')
+    return nn.Conv2d(input_dim, out_shape, kernel_size, stride, padding='same')
 
 
 def kan_conv2d(node: NasNode, **inputs_dict):

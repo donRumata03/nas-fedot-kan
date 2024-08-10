@@ -165,10 +165,10 @@ def build_mnist_cls(save_path=None):
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
-    kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=16,
+    kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
                                                                      max_number_of_neurons=128)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
-        min_number_of_neurons=4, max_number_of_neurons=32
+        min_number_of_neurons=4, max_number_of_neurons=64
     )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
