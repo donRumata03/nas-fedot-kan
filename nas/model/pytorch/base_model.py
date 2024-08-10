@@ -339,7 +339,7 @@ class NASTorchModel(torch.nn.Module):
                 with torch.no_grad():
                     self.eval()
                     val_metrics = self.validate(val_data, loss, device, metrics=metrics_to_val)
-                metrics = metrics | val_metrics
+                metrics.update(val_metrics)
 
     def predict(self,
                 test_data: DataLoader,
