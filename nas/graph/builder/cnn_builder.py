@@ -99,7 +99,7 @@ class ConvGraphMaker(GraphGenerator):
         node = NasNode(content={'name': node_to_add.value, 'params': node_params}, nodes_from=parent_node)
         return node
 
-    def build(self) -> NasGraph:
+    def build_one_graph(self) -> NasGraph:
         generation_function = self._generate_kan_from_scratch if self.requirements.is_kan() else self._generate_from_scratch
         for _ in range(self._generation_attempts):
             graph = NasGraph()
@@ -113,6 +113,12 @@ class ConvGraphMaker(GraphGenerator):
                 return graph
         raise ValueError(f"Max number of generation attempts was reached and graph verification wasn't successful."
                          f"Try different requirements.")
+
+    def build(self, initial_population_size) -> List[NasGraph]:
+        graphs = []
+        for _ in range(initial_population_size):
+            graphs.append(self.build_one_graph())
+        return graphs
 
     @staticmethod
     def load_graph(path) -> NasGraph:

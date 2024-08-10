@@ -133,8 +133,8 @@ def build_mnist_cls(save_path=None):
     initial_population_size = 5
     max_population_size = 10
 
-    # history_path_instead_of_evolution = None  # For evolution
-    history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
+    history_path_instead_of_evolution = None  # For evolution
+    # history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
     dataset_cls = MNIST
 
     set_root(project_root())
@@ -256,7 +256,7 @@ def build_mnist_cls(save_path=None):
     builder = ComposerBuilder(task).with_composer(NNComposer).with_optimizer(NNGraphOptimiser). \
         with_requirements(requirements).with_metrics(
         [objective_function, parameter_count_complexity_metric]).with_optimizer_params(optimizer_parameters). \
-        with_initial_pipelines(graph_generation_function.build()). \
+        with_initial_pipelines(graph_generation_function.build(initial_population_size)). \
         with_graph_generation_param(graph_generation_parameters)
 
     composer = builder.build()
