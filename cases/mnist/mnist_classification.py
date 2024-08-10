@@ -29,7 +29,7 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from nas.utils.random_split_hack import random_split
-from torchvision.datasets import MNIST
+from torchvision.datasets import FashionMNIST
 from torchvision.transforms import transforms
 
 import nas.composer.requirements as nas_requirements
@@ -143,10 +143,10 @@ def build_mnist_cls(save_path=None):
         return torch.nn.functional.one_hot(torch.tensor(target), num_classes=num_classes).float()
 
     mnist_path = project_root() / "cases/mnist"
-    mnist_train = MNIST(root=mnist_path, train=True, download=True, transform=transform,
-                        target_transform=one_hot_encode)
-    mnist_test = MNIST(root=mnist_path, train=False, download=True, transform=transform,
-                       target_transform=one_hot_encode)
+    mnist_train = FashionMNIST(root=mnist_path, train=True, download=True, transform=transform,
+                               target_transform=one_hot_encode)
+    mnist_test = FashionMNIST(root=mnist_path, train=False, download=True, transform=transform,
+                              target_transform=one_hot_encode)
     assert num_classes == len(mnist_train.classes)
 
     conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
