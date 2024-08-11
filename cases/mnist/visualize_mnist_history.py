@@ -10,7 +10,8 @@ from nas.graph.node.adapter import NasNodeOperatorAdapter
 from nas.graph.node.nas_graph_node import NasNode
 from nas.utils.utils import project_root
 
-path = project_root() / "_results/debug/master_2/2024-08-09_23-30-56/history.json"
+# path = project_root() / "_results/debug/master_2/2024-08-09_23-30-56/history.json"
+path = r"D:\dev\aim\nas_kan_results\_results\kan-mnist-no-final-fitting\history.json"
 
 history = OptHistory.load(path)
 
@@ -35,27 +36,27 @@ for generation in history.individuals:
                 break
 
 # Plot hist of total parameter count or flops for all individuals in the history:
-values = []
-for generation in history.individuals:
-    for ind in generation:
-        # values.append(ind.fitness.values[1])
-        values.append(DirectAdapter(base_graph_class=NasGraph, base_node_class=NasNode).restore(
-            ind.graph).get_singleton_node_by_name('flatten').content["total_model_flops"])
-
-from seaborn import histplot
-
-histplot(values)
-plt.show()
+# values = []
+# for generation in history.individuals:
+#     for ind in generation:
+#         # values.append(ind.fitness.values[1])
+#         values.append(DirectAdapter(base_graph_class=NasGraph, base_node_class=NasNode).restore(
+#             ind.graph).get_singleton_node_by_name('flatten').content["total_model_flops"])
+# 
+# from seaborn import histplot
+# 
+# histplot(values)
+# plt.show()
 
 # history.show(PlotTypesEnum.operations_animated_bar)
 # history.show(PlotTypesEnum.operations_kde)
 # history.show(PlotTypesEnum.fitness_line_interactive)
 
-# visualise_pareto(
-#     history.final_choices.data, show=True, objectives_names=("LogLoss", "Parameters")
-# )
-# 
-# print(history.get_leaderboard())
+visualise_pareto(
+    history.final_choices.data, show=True, objectives_names=("LogLoss", "Parameters")
+)
+
+print(history.get_leaderboard())
 # 
 # chosen = history.final_choices[0].graph
 # PipelineVisualizer(chosen).visualise()
