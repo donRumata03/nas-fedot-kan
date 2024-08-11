@@ -31,7 +31,8 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from nas.utils.random_split_hack import random_split
-from torchvision.datasets import FashionMNIST, MNIST, EuroSAT
+from torchvision.datasets import FashionMNIST, MNIST
+from cases.mnist.eurosat_dataset import EuroSAT
 from torchvision.transforms import transforms
 
 import nas.composer.requirements as nas_requirements
@@ -272,6 +273,7 @@ def build_mnist_cls(save_path=None):
     else:
         history = OptHistory.load(history_path_instead_of_evolution)
         print(f"Loaded from history {history_path_instead_of_evolution}: {history}")
+        pathlib.Path(save_path).mkdir(exist_ok=True, parents=True)
     final_choices = history.final_choices
 
     if visualize:
