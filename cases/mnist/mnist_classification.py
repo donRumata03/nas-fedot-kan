@@ -12,6 +12,7 @@ import certifi
 project_root_path = pathlib.Path(__file__).parent.parent.parent.absolute()
 print(project_root_path)
 sys.path.append(str(project_root_path))
+sys.path.append(str(project_root_path / "cases/mnist"))
 
 import numpy as np
 from fedot.core.composer.composer_builder import ComposerBuilder
