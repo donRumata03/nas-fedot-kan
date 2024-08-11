@@ -3,9 +3,11 @@ import json
 import os
 import pathlib
 import random
+import ssl
 import sys
 
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+import certifi
 
 project_root_path = pathlib.Path(__file__).parent.parent.parent.absolute()
 print(project_root_path)
@@ -136,7 +138,7 @@ def build_mnist_cls(save_path=None):
 
     history_path_instead_of_evolution = None  # For evolution
     # history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
-    dataset_cls = MNIST
+    dataset_cls = EuroSAT
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -147,12 +149,18 @@ def build_mnist_cls(save_path=None):
     def one_hot_encode(target):
         return torch.nn.functional.one_hot(torch.tensor(target), num_classes=num_classes).float()
 
-    mnist_path = project_root() / "cases/mnist"
-    mnist_train = dataset_cls(root=mnist_path, train=True, download=True, transform=transform,
-                              target_transform=one_hot_encode)
-    mnist_test = dataset_cls(root=mnist_path, train=False, download=True, transform=transform,
-                             target_transform=one_hot_encode)
-    assert num_classes == len(mnist_train.classes)
+    dataset_path = project_root() / "cases/mnist"
+    if dataset_cls is EuroSAT:
+        dataset_train, dataset_test = random_split(
+            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True),
+            [.7, .3]
+        )
+    else:
+        dataset_train = dataset_cls(root=dataset_path, train=True, download=True, transform=transform,
+                                    target_transform=one_hot_encode)
+        dataset_test = dataset_cls(root=dataset_path, train=False, download=True, transform=transform,
+                                   target_transform=one_hot_encode)
+    assert num_classes == len(dataset_train.dataset.classes)
 
     conv_layers_pool = [LayersPoolEnum.conv2d, ]
 
@@ -266,7 +274,7 @@ def build_mnist_cls(save_path=None):
 
     # The actual composition #######
     if history_path_instead_of_evolution is None:
-        _optimizer_result = composer.compose_pipeline(mnist_train)
+        _optimizer_result = composer.compose_pipeline(dataset_train)
         history = composer.history
         if save_path:
             composer.save(path=save_path)
@@ -287,22 +295,22 @@ def build_mnist_cls(save_path=None):
     # Train the final choices #######
 
     # train_data, val_data = train_test_data_setup(train_data, split_ratio=.7, shuffle_flag=False)
-    mnist_train, mnist_val = random_split(mnist_train, [.7, .3])
+    final_dataset_train, final_dataset_val = random_split(dataset_train, [.7, .3])
 
-    train_dataset = DataLoader(mnist_train, batch_size=requirements.model_requirements.batch_size,
-                               shuffle=True)
-    val_data = DataLoader(mnist_val, batch_size=requirements.model_requirements.batch_size,
-                          shuffle=True)
-    test_dataset = DataLoader(mnist_test, batch_size=requirements.model_requirements.batch_size,
-                              shuffle=False)
+    final_train_dataloader = DataLoader(final_dataset_train, batch_size=requirements.model_requirements.batch_size,
+                                        shuffle=True)
+    final_val_dataloader = DataLoader(final_dataset_val, batch_size=requirements.model_requirements.batch_size,
+                                      shuffle=True)
+    final_test_dataloader = DataLoader(dataset_test, batch_size=requirements.model_requirements.batch_size,
+                                       shuffle=False)
 
     final_results = {}
     for final_choice in final_choices:
         optimized_network = composer.optimizer.graph_generation_params.adapter.restore(final_choice.graph)
         trainer = model_trainer.build([image_side_size, image_side_size, 1], num_classes,
                                       optimized_network)
-        trainer.fit_model(train_dataset, val_data, epochs)
-        predictions, targets = trainer.predict(test_dataset)
+        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs)
+        predictions, targets = trainer.predict(final_test_dataloader)
 
         loss = log_loss(targets, predictions)
         roc = roc_auc_score(targets, predictions, multi_class='ovo')

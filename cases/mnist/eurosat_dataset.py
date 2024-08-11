@@ -1,14 +1,36 @@
 """
-Copied from torchvision v0.12 (only v0.11 is available on the server)
+Copied from torchvision v0.12 (only v0.11 is available on the server).
+Patched for in-gpu-memory caching
 """
 import os
-from typing import Callable, Optional
+from pathlib import Path
+from typing import Callable, Optional, Union
 
+import torch
 from torchvision.datasets import ImageFolder
 from torchvision.datasets.utils import download_and_extract_archive
 
 
-class EuroSAT(ImageFolder):
+class GpuCachedImageFolder(ImageFolder):
+    def __init__(self, root, transform, target_transform: Optional[Callable] = None):
+        super(GpuCachedImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
+        self.cache = {}
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    def __getitem__(self, index):
+        if index in self.cache:
+            return self.cache[index]
+
+        # Get the image and label using the parent class method
+        image, label = super(GpuCachedImageFolder, self).__getitem__(index)
+        image = image.to(self.device)
+
+        # Cache the image and label
+        self.cache[index] = (image, label)
+        return image, label
+
+
+class EuroSAT(GpuCachedImageFolder):
     """RGB version of the `EuroSAT <https://github.com/phelber/eurosat>`_ Dataset.
 
     Args:
@@ -24,7 +46,7 @@ class EuroSAT(ImageFolder):
 
     def __init__(
             self,
-            root: str,
+            root: Union[str, Path],
             transform: Optional[Callable] = None,
             target_transform: Optional[Callable] = None,
             download: bool = False,
