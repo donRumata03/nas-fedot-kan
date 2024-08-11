@@ -36,17 +36,17 @@ for generation in history.individuals:
                 break
 
 # Plot hist of total parameter count or flops for all individuals in the history:
-# values = []
-# for generation in history.individuals:
-#     for ind in generation:
-#         # values.append(ind.fitness.values[1])
-#         values.append(DirectAdapter(base_graph_class=NasGraph, base_node_class=NasNode).restore(
-#             ind.graph).get_singleton_node_by_name('flatten').content["total_model_flops"])
-# 
-# from seaborn import histplot
-# 
-# histplot(values)
-# plt.show()
+values = []
+for generation in history.individuals:
+    for ind in generation:
+        values.append(ind.fitness.values[1])
+        # values.append(DirectAdapter(base_graph_class=NasGraph, base_node_class=NasNode).restore(
+        #     ind.graph).get_singleton_node_by_name('flatten').content["total_model_flops"])
+
+from seaborn import histplot
+
+histplot(values)
+plt.show()
 
 # history.show(PlotTypesEnum.operations_animated_bar)
 # history.show(PlotTypesEnum.operations_kde)
