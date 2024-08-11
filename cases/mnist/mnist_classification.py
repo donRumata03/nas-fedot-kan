@@ -132,13 +132,13 @@ def build_mnist_cls(save_path=None):
     batch_size = 32
     epochs = 10
     optimization_epochs = 2
-    num_of_generations = 20
+    num_of_generations = 7
     initial_population_size = 5
     max_population_size = 10
 
     history_path_instead_of_evolution = None  # For evolution
     # history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
-    dataset_cls = EuroSAT
+    dataset_cls = MNIST
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -155,22 +155,23 @@ def build_mnist_cls(save_path=None):
             EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True),
             [.7, .3]
         )
+        assert num_classes == len(dataset_train.dataset.classes)
     else:
         dataset_train = dataset_cls(root=dataset_path, train=True, download=True, transform=transform,
                                     target_transform=one_hot_encode)
         dataset_test = dataset_cls(root=dataset_path, train=False, download=True, transform=transform,
                                    target_transform=one_hot_encode)
-    assert num_classes == len(dataset_train.dataset.classes)
+        assert num_classes == len(dataset_train.classes)
 
     conv_layers_pool = [LayersPoolEnum.conv2d, ]
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
 
-    fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
-                                                             max_number_of_neurons=256)
+    fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=128,
+                                                             max_number_of_neurons=512)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=2, max_number_of_neurons=64,
+        min_number_of_neurons=16, max_number_of_neurons=512,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
@@ -192,9 +193,9 @@ def build_mnist_cls(save_path=None):
                                                             epochs=epochs,
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,  # Fc layers including last, output layer
-                                                            max_nn_depth=1,
+                                                            max_nn_depth=3,
                                                             min_num_of_conv_layers=2,
-                                                            max_num_of_conv_layers=3)
+                                                            max_num_of_conv_layers=6)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
