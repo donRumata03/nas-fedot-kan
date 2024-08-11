@@ -125,7 +125,7 @@ def generate_kkan_from_paper() -> NasGraph:
     return graph
 
 
-def build_mnist_cls(save_path=None):
+def build_mnist_cls(save_path, dataset_cls):
     visualize = False
     cv_folds = None
     num_classes = 10
@@ -139,7 +139,6 @@ def build_mnist_cls(save_path=None):
 
     history_path_instead_of_evolution = None  # For evolution
     # history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
-    dataset_cls = MNIST
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
@@ -338,6 +337,6 @@ def build_mnist_cls(save_path=None):
 
 
 if __name__ == '__main__':
-    path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-    print(path)
-    build_mnist_cls(path)
+    for dataset_cls in [MNIST, FashionMNIST]:
+        path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+        build_mnist_cls(path, dataset_cls=dataset_cls)
