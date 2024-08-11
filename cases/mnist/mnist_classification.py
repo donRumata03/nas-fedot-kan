@@ -169,7 +169,7 @@ def build_mnist_cls(save_path=None):
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
 
-    fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=128,
+    fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=256,
                                                              max_number_of_neurons=512)
     conv_requirements = nas_requirements.ConvRequirements(
         min_number_of_neurons=16, max_number_of_neurons=512,
@@ -196,7 +196,7 @@ def build_mnist_cls(save_path=None):
                                                             min_nn_depth=1,  # Fc layers including last, output layer
                                                             max_nn_depth=3,
                                                             min_num_of_conv_layers=2,
-                                                            max_num_of_conv_layers=6)
+                                                            max_num_of_conv_layers=8)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
@@ -236,7 +236,7 @@ def build_mnist_cls(save_path=None):
         model_has_several_starts, model_has_no_conv_layers, model_has_wrong_number_of_flatten_layers,
         model_has_several_roots,
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
-        # has_too_much_parameters(500_000, parameter_count_complexity_metric),
+        has_too_much_parameters(1_500_000, parameter_count_complexity_metric),
         # has_too_much_flops(3_000_000, flops_complexity_metric)
         has_too_much_time(basic_graph_time * 2.5, time_complexity_metric)
     ]

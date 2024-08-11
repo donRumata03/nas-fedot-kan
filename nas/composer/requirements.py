@@ -118,7 +118,7 @@ class ConvRequirements(BaseLayerRequirements):
     padding: Union[str, Collection[Collection[int]]] = None
     kernel_size: Union[List[int], Tuple[int]] = None
 
-    supplementary_pooling_prob: float = .5
+    supplementary_pooling_prob: float = .3  # Nobody knows which order of magnitude this should be (or pretends so) → it's set to .5
 
     def __post_init__(self):
         if not self.dilation_rate:
@@ -226,7 +226,7 @@ class KANConvRequirements(KANSplineRequirements):
     max_number_of_neurons: int = 32
     kernel_size: List[int] = field(default_factory=lambda: [3, 5])
 
-    pooling_prob: float = .8  # Nobody knows which order of magnitude this should be (or pretends so) → it's set to .5
+    pooling_prob: float = .8
     pooling_kernel_size: List[int] = field(default_factory=lambda: [2,])  # Could be 3?
 
     # Padding would be computed automatically form kernel size to maintain the feature map size:
