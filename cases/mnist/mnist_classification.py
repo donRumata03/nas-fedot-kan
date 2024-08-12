@@ -377,4 +377,5 @@ if __name__ == '__main__':
         EuroSAT
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+        print(f"Save path: {path}")
         build_mnist_cls(path, dataset_cls=dataset_cls, is_kan=True)
