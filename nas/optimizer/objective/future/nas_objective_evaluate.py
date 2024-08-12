@@ -78,7 +78,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         trainer = self._model_trainer_builder.build(input_shape=input_shape, output_shape=classes, graph=graph)
         # NOTE: COMMENT OUT TO SKIP TRAINING IN DEBUG PURPOSES
         trainer.fit_model(train_data=opt_dataset,
-                          val_data=debug_test_data,
+                          # val_data=debug_test_data,
                           epochs=opt_epochs)
         return trainer
 
