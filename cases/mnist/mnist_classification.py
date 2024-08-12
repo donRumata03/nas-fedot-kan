@@ -271,7 +271,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
         has_too_much_parameters(1_500_000, parameter_count_complexity_metric),
         # has_too_much_flops(3_000_000, flops_complexity_metric)
-        # has_too_much_time(basic_graph_time * 2.5, time_complexity_metric)
+        has_too_much_time(basic_graph_time * 2.5, time_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,

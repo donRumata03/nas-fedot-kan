@@ -148,7 +148,7 @@ def get_time_from_graph(graph: NasGraph, in_shape, out_shape, device, optimizati
     example_input = torch.rand([batch_size, *in_shape[::-1]]).to(device)
 
     res = timeit.timeit(lambda: model(example_input), number=10)
-    print("time: ", res)
+    # print("time: ", res)
     return res
 
 
@@ -332,9 +332,9 @@ class NASTorchModel(torch.nn.Module):
         metrics_to_val = kwargs.get('metrics')
         metrics = dict()
         optim = optimizer(self.parameters(), lr=kwargs.get('lr', 1e-3))
-        pbar = tqdm.trange(epochs, desc='Fitting graph', leave=False, position=0)
+        # pbar = tqdm.trange(epochs, desc='Fitting graph', leave=False, position=0)
         start_time = timeit.default_timer()
-        for epoch in pbar:
+        for epoch in range(epochs):
             self.train(mode=True)
             train_loss = self._one_epoch_train(train_data, optim, loss, device)
             metrics['train_loss'] = train_loss
@@ -344,7 +344,7 @@ class NASTorchModel(torch.nn.Module):
                     val_metrics = self.validate(val_data, loss, device, metrics=metrics_to_val)
                     self.train()
                 metrics.update(val_metrics)
-            print(f"Epoch: {epoch}, Current metrics: {metrics}")
+            # print(f"Epoch: {epoch}, Current metrics: {metrics}")
             if timeout_seconds and timeit.default_timer() - start_time > timeout_seconds:
                 break
 
