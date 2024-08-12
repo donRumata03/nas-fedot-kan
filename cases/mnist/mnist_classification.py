@@ -132,7 +132,6 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     image_side_size = 64
     batch_size = 32
     epochs = 10
-    optimization_epochs = 50  # for testing
     num_of_generations = 4
     initial_population_size = 1  # for testing
     max_population_size = 3
@@ -182,6 +181,8 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
 
         min_conv_layers = 2
         max_conv_layers = 4
+
+        optimization_epochs = 5
     else:
         conv_layers_pool = [LayersPoolEnum.conv2d, ]
         fc_layers_pool = [LayersPoolEnum.linear, ]
@@ -191,6 +192,8 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
 
         min_conv_layers = 2
         max_conv_layers = 8
+
+        optimization_epochs = 20
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
@@ -222,7 +225,8 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
                                                             secondary=fc_layers_pool,
                                                             epochs=epochs,
                                                             batch_size=batch_size,
-                                                            min_nn_depth=min_fc_layers,  # Fc layers including last, output layer
+                                                            min_nn_depth=min_fc_layers,
+                                                            # Fc layers including last, output layer
                                                             max_nn_depth=max_fc_layers,
                                                             min_num_of_conv_layers=min_conv_layers,
                                                             max_num_of_conv_layers=max_conv_layers)
