@@ -73,8 +73,7 @@ class FixedGraphGenerator(GraphGenerator):
         return self.graph
 
 
-def generate_kkan_from_paper() -> NasGraph:
-    n_convs = 5
+def generate_basic_kkan(starting_value, factor) -> NasGraph:
     conv_layer_type = LayersPoolEnum.kan_conv2d
     node_types = [
         conv_layer_type,
@@ -89,10 +88,10 @@ def generate_kkan_from_paper() -> NasGraph:
 
     graph = NasGraph()
     parent_node = None
-    shape = 1
+    shape = starting_value
     for node_type in node_types:
         if node_type == conv_layer_type:
-            shape *= n_convs
+            shape *= factor
 
         param_variants = {
             'kan_conv2d': {
@@ -135,7 +134,7 @@ def build_mnist_cls(save_path, dataset_cls):
     epochs = 10
     optimization_epochs = 10  # for testing
     num_of_generations = 4
-    initial_population_size = 3
+    initial_population_size = 1  # for testing
     max_population_size = 3
     color_mode = 'color'
 
@@ -222,7 +221,8 @@ def build_mnist_cls(save_path, dataset_cls):
                                      device=device,
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
-    basic_graph_time = get_time_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, input_channels],
+    basic_graph_time = get_time_from_graph(generate_basic_kkan(input_channels, 4),
+                                           [image_side_size, image_side_size, input_channels],
                                            num_classes, device, batch_size)
     print("Basic graph time: ", basic_graph_time)
 
@@ -233,7 +233,8 @@ def build_mnist_cls(save_path, dataset_cls):
         return get_flops_from_graph(graph, [image_side_size, image_side_size, input_channels], num_classes)
 
     def time_complexity_metric(graph: NasGraph):
-        return get_time_from_graph(graph, [image_side_size, image_side_size, input_channels], num_classes, device, batch_size)
+        return get_time_from_graph(graph, [image_side_size, image_side_size, input_channels], num_classes, device,
+                                   batch_size)
 
     validation_rules = [
         filter_size_increases_monotonically,
