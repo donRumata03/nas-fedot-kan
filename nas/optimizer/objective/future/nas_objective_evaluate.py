@@ -49,7 +49,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         train_data, test_data = random_split(self._dataset, [.8, .2])
         gc.collect()
         torch.cuda.empty_cache()
-        fitted_model = self._graph_fit(graph, train_data, log=self._log)
+        fitted_model = self._graph_fit(graph, train_data, log=self._log, debug_test_data=test_data)
         fold_fitness = self._evaluate_fitted_model(fitted_model, test_data, graph, log=self._log)
         del fitted_model
         return fold_fitness
