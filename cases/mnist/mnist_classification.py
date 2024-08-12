@@ -147,7 +147,13 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
 
     input_channels = _get_image_channels_num(color_mode)
 
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+    transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+    ])
 
     def one_hot_encode(target):
         return torch.nn.functional.one_hot(torch.tensor(target), num_classes=num_classes).float()
