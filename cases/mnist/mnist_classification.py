@@ -133,9 +133,9 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     batch_size = 32
     epochs = 40
     optimization_epochs = 20
-    num_of_generations = 4
+    num_of_generations = 6
     initial_population_size = 1  # for testing
-    max_population_size = 3
+    max_population_size = 5
     color_mode = 'color'
 
     history_path_instead_of_evolution = None  # For evolution
@@ -161,7 +161,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     dataset_path = project_root() / "cases/mnist"
     if dataset_cls is EuroSAT:
         dataset_train, dataset_test = random_split(
-            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True, eager=True,
+            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True, eager=False,
                     cache_before_transform=True),
             [.7, .3]
         )
@@ -231,7 +231,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=5.5),
+                                                           timeout=datetime.timedelta(hours=4.5),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
@@ -271,7 +271,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
         has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
         has_too_much_parameters(1_500_000, parameter_count_complexity_metric),
         # has_too_much_flops(3_000_000, flops_complexity_metric)
-        has_too_much_time(basic_graph_time * 2.5, time_complexity_metric)
+        # has_too_much_time(basic_graph_time * 2.5, time_complexity_metric)
     ]
 
     optimizer_parameters = GPAlgorithmParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
@@ -344,7 +344,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
         optimized_network = composer.optimizer.graph_generation_params.adapter.restore(final_choice.graph)
         trainer = model_trainer.build([image_side_size, image_side_size, input_channels], num_classes,
                                       optimized_network)
-        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs)
+        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs, timeout_seconds=60 * 20)
         predictions, targets = trainer.predict(final_test_dataloader)
 
         loss = log_loss(targets, predictions)
@@ -378,4 +378,4 @@ if __name__ == '__main__':
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         print(f"Save path: {path}")
-        build_mnist_cls(path, dataset_cls=dataset_cls, is_kan=True)
+        build_mnist_cls(path, dataset_cls=dataset_cls, is_kan=False)
