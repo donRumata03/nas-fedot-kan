@@ -155,7 +155,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     dataset_path = project_root() / "cases/mnist"
     if dataset_cls is EuroSAT:
         dataset_train, dataset_test = random_split(
-            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True),
+            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True, eager=True),
             [.7, .3]
         )
         assert num_classes == len(dataset_train.dataset.classes)
