@@ -179,12 +179,18 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
 
         min_fc_layers = 1
         max_fc_layers = 1
+
+        min_conv_layers = 2
+        max_conv_layers = 4
     else:
         conv_layers_pool = [LayersPoolEnum.conv2d, ]
         fc_layers_pool = [LayersPoolEnum.linear, ]
 
         min_fc_layers = 2
         max_fc_layers = 3
+
+        min_conv_layers = 2
+        max_conv_layers = 8
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
@@ -213,13 +219,13 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
                                                             primary=conv_layers_pool,
                                                             kan_conv_requirements=kan_conv_requirements,
                                                             kan_linear_requirements=kan_linear_requirements,
-                                                            secondary=[LayersPoolEnum.linear],
+                                                            secondary=fc_layers_pool,
                                                             epochs=epochs,
                                                             batch_size=batch_size,
-                                                            min_nn_depth=2,  # Fc layers including last, output layer
-                                                            max_nn_depth=3,
-                                                            min_num_of_conv_layers=2,
-                                                            max_num_of_conv_layers=6)
+                                                            min_nn_depth=min_fc_layers,  # Fc layers including last, output layer
+                                                            max_nn_depth=max_fc_layers,
+                                                            min_num_of_conv_layers=min_conv_layers,
+                                                            max_num_of_conv_layers=max_conv_layers)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
@@ -369,4 +375,4 @@ if __name__ == '__main__':
         EuroSAT
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-        build_mnist_cls(path, dataset_cls=dataset_cls)
+        build_mnist_cls(path, dataset_cls=dataset_cls, is_kan=True)
