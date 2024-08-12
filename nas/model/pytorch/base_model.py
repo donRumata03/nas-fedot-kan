@@ -299,6 +299,7 @@ class NASTorchModel(torch.nn.Module):
         return running_loss
 
     def validate(self, val_data: DataLoader, loss_fn, device, **kwargs) -> Dict:
+        self.eval()
         metrics_to_calc = kwargs.get('metrics')
         metrics = {'val_loss': 0}
         for batch_id, (features_batch, targets_batch) in enumerate(val_data):
@@ -339,6 +340,7 @@ class NASTorchModel(torch.nn.Module):
                 with torch.no_grad():
                     self.eval()
                     val_metrics = self.validate(val_data, loss, device, metrics=metrics_to_val)
+                    self.train()
                 metrics.update(val_metrics)
             print(f"Epoch: {epoch}, Current metrics: {metrics}")
 
