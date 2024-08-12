@@ -130,11 +130,11 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     cv_folds = None
     num_classes = 10
     image_side_size = 64
-    batch_size = 32
+    batch_size = 16
     epochs = 40
     optimization_epochs = 20
     num_of_generations = 6
-    initial_population_size = 1  # for testing
+    initial_population_size = 5
     max_population_size = 5
     color_mode = 'color'
 
