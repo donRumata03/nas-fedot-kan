@@ -12,7 +12,7 @@ from nas.utils.utils import project_root
 
 # path = project_root() / "_results/debug/master_2/2024-08-09_23-30-56/history.json"
 # path = r"D:\dev\aim\nas_kan_results\_results\kan-mnist-no-final-fitting\history.json"
-path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-12_00-07-27\history.json"
+path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-12_12-50-20\history.json"
 
 history = OptHistory.load(path)
 

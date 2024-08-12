@@ -163,7 +163,7 @@ def build_mnist_cls(save_path, dataset_cls):
                                    target_transform=one_hot_encode)
         assert num_classes == len(dataset_train.classes)
 
-    conv_layers_pool = [LayersPoolEnum.conv2d, ]
+    conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
@@ -178,7 +178,7 @@ def build_mnist_cls(save_path, dataset_cls):
     kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
                                                                      max_number_of_neurons=128)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
-        min_number_of_neurons=4, max_number_of_neurons=64
+        min_number_of_neurons=2, max_number_of_neurons=16
     )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
@@ -189,13 +189,13 @@ def build_mnist_cls(save_path, dataset_cls):
                                                             primary=conv_layers_pool,
                                                             kan_conv_requirements=kan_conv_requirements,
                                                             kan_linear_requirements=kan_linear_requirements,
-                                                            secondary=[LayersPoolEnum.linear],
+                                                            secondary=[LayersPoolEnum.kan_linear],
                                                             epochs=epochs,
                                                             batch_size=batch_size,
                                                             min_nn_depth=1,  # Fc layers including last, output layer
-                                                            max_nn_depth=3,
+                                                            max_nn_depth=1,
                                                             min_num_of_conv_layers=2,
-                                                            max_num_of_conv_layers=8)
+                                                            max_num_of_conv_layers=3)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
@@ -337,6 +337,9 @@ def build_mnist_cls(save_path, dataset_cls):
 
 
 if __name__ == '__main__':
-    for dataset_cls in [MNIST, FashionMNIST]:
+    for dataset_cls in [
+            MNIST,
+            # FashionMNIST
+    ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         build_mnist_cls(path, dataset_cls=dataset_cls)
