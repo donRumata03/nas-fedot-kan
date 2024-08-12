@@ -330,8 +330,8 @@ class NASTorchModel(torch.nn.Module):
         metrics_to_val = kwargs.get('metrics')
         metrics = dict()
         optim = optimizer(self.parameters(), lr=kwargs.get('lr', 1e-3))
-        # pbar = tqdm.trange(epochs, desc='Fitting graph', leave=False, position=0)
-        for epoch in range(epochs):
+        pbar = tqdm.trange(epochs, desc='Fitting graph', leave=False, position=0)
+        for epoch in pbar:
             self.train(mode=True)
             train_loss = self._one_epoch_train(train_data, optim, loss, device)
             metrics['train_loss'] = train_loss

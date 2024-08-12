@@ -12,14 +12,15 @@ from torchvision.datasets.utils import download_and_extract_archive
 
 
 class GpuCachedImageFolder(ImageFolder):
-    def __init__(self, root, transform, target_transform: Optional[Callable] = None):
+    def __init__(self, root, transform, target_transform: Optional[Callable] = None, eager: bool = False):
         super(GpuCachedImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         self.cache = {}
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print("Caching all images into GPU…")
-        for i in range(len(self)):
-            _img = self[i]
-        print("DONE caching all images into GPU")
+        if eager:
+            print("Caching all images into GPU…")
+            for i in range(len(self)):
+                _img = self[i]
+            print("DONE caching all images into GPU")
 
     def __getitem__(self, index):
         if index in self.cache:
@@ -54,6 +55,7 @@ class EuroSAT(GpuCachedImageFolder):
             transform: Optional[Callable] = None,
             target_transform: Optional[Callable] = None,
             download: bool = False,
+            eager: bool = False
     ) -> None:
         self.root = os.path.expanduser(root)
         self._base_folder = os.path.join(self.root, "eurosat")
@@ -65,7 +67,7 @@ class EuroSAT(GpuCachedImageFolder):
         if not self._check_exists():
             raise RuntimeError("Dataset not found. You can use download=True to download it")
 
-        super().__init__(self._data_folder, transform=transform, target_transform=target_transform)
+        super().__init__(self._data_folder, transform=transform, target_transform=target_transform, eager=eager)
         self.root = os.path.expanduser(root)
 
     def __len__(self) -> int:

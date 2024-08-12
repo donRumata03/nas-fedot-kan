@@ -125,7 +125,7 @@ def generate_basic_kkan(starting_value, factor) -> NasGraph:
     return graph
 
 
-def build_mnist_cls(save_path, dataset_cls):
+def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     visualize = False
     cv_folds = None
     num_classes = 10
@@ -166,7 +166,17 @@ def build_mnist_cls(save_path, dataset_cls):
                                    target_transform=one_hot_encode)
         assert num_classes == len(dataset_train.classes)
 
-    conv_layers_pool = [LayersPoolEnum.conv2d, ]
+    if is_kan:
+        conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
+        fc_layers_pool = [LayersPoolEnum.kan_linear, ]
+        
+        min_fc_layers = 1
+        max_fc_layers = 2
+    else:
+        conv_layers_pool = [LayersPoolEnum.conv2d, ]
+        fc_layers_pool = [LayersPoolEnum.linear, ]
+        max_fc_layers = 3
+        
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
