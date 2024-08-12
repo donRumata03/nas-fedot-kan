@@ -163,15 +163,15 @@ def build_mnist_cls(save_path, dataset_cls):
                                    target_transform=one_hot_encode)
         assert num_classes == len(dataset_train.classes)
 
-    conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
+    conv_layers_pool = [LayersPoolEnum.conv2d, ]
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
 
-    fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=256,
+    fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              max_number_of_neurons=512)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=16, max_number_of_neurons=512,
+        min_number_of_neurons=16, max_number_of_neurons=128,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2])
 
@@ -189,13 +189,13 @@ def build_mnist_cls(save_path, dataset_cls):
                                                             primary=conv_layers_pool,
                                                             kan_conv_requirements=kan_conv_requirements,
                                                             kan_linear_requirements=kan_linear_requirements,
-                                                            secondary=[LayersPoolEnum.kan_linear],
+                                                            secondary=[LayersPoolEnum.linear],
                                                             epochs=epochs,
                                                             batch_size=batch_size,
-                                                            min_nn_depth=1,  # Fc layers including last, output layer
-                                                            max_nn_depth=1,
+                                                            min_nn_depth=2,  # Fc layers including last, output layer
+                                                            max_nn_depth=3,
                                                             min_num_of_conv_layers=2,
-                                                            max_num_of_conv_layers=3)
+                                                            max_num_of_conv_layers=6)
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,

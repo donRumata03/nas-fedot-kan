@@ -12,7 +12,7 @@ from nas.utils.utils import project_root
 
 # path = project_root() / "_results/debug/master_2/2024-08-09_23-30-56/history.json"
 # path = r"D:\dev\aim\nas_kan_results\_results\kan-mnist-no-final-fitting\history.json"
-path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-12_12-50-20\history.json"
+path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-12_18-06-26\history.json"
 
 history = OptHistory.load(path)
 
@@ -36,6 +36,11 @@ for generation in history.individuals:
                 print(f"KANLinear node found in graph: {graph}, {node.uid}")
                 break
 
+            if node.content["name"] == "linear":
+                print(f"Linear node found in graph: {graph}, {node.uid}")
+                print(node.content)
+                break
+
 # Plot hist of total parameter count or flops for all individuals in the history:
 values = []
 for generation in history.individuals:
@@ -44,10 +49,12 @@ for generation in history.individuals:
         # values.append(DirectAdapter(base_graph_class=NasGraph, base_node_class=NasNode).restore(
         #     ind.graph).get_singleton_node_by_name('flatten').content["total_model_flops"])
 
-from seaborn import histplot
+from seaborn import histplot, distplot, displot
 
-histplot(values)
+histplot(values, log_scale=True, bins=5)
 plt.show()
+# displot(values, log_scale=True, bins=5)
+# plt.show()
 
 # history.show(PlotTypesEnum.operations_animated_bar)
 # history.show(PlotTypesEnum.operations_kde)
