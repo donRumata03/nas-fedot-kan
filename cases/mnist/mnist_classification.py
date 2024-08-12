@@ -155,7 +155,8 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     dataset_path = project_root() / "cases/mnist"
     if dataset_cls is EuroSAT:
         dataset_train, dataset_test = random_split(
-            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True, eager=True),
+            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True, eager=True,
+                    cache_before_transform=True),
             [.7, .3]
         )
         assert num_classes == len(dataset_train.dataset.classes)
@@ -169,14 +170,15 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     if is_kan:
         conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
         fc_layers_pool = [LayersPoolEnum.kan_linear, ]
-        
+
         min_fc_layers = 1
-        max_fc_layers = 2
+        max_fc_layers = 1
     else:
         conv_layers_pool = [LayersPoolEnum.conv2d, ]
         fc_layers_pool = [LayersPoolEnum.linear, ]
+
+        min_fc_layers = 2
         max_fc_layers = 3
-        
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
@@ -193,7 +195,8 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
                                                                      max_number_of_neurons=128)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
-        min_number_of_neurons=3, max_number_of_neurons=24
+        min_number_of_neurons=3, max_number_of_neurons=24,
+        pooling_prob=0.9
     )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
