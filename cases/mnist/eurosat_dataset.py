@@ -16,6 +16,10 @@ class GpuCachedImageFolder(ImageFolder):
         super(GpuCachedImageFolder, self).__init__(root, transform=transform, target_transform=target_transform)
         self.cache = {}
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print("Caching all images into GPU…")
+        for i in range(len(self)):
+            _img = self[i]
+        print("DONE caching all images into GPU")
 
     def __getitem__(self, index):
         if index in self.cache:
