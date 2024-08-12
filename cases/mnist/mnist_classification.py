@@ -56,6 +56,7 @@ from nas.operations.validation_rules.cnn_val_rules import *
 from nas.optimizer.objective.nas_cnn_optimiser import NNGraphOptimiser
 from nas.repository.layer_types_enum import LayersPoolEnum
 from nas.utils.utils import set_root, project_root
+from nas.composer.requirements import _get_image_channels_num
 
 set_root(project_root())
 
@@ -129,13 +130,14 @@ def build_mnist_cls(save_path, dataset_cls):
     visualize = False
     cv_folds = None
     num_classes = 10
-    image_side_size = 28
+    image_side_size = 64
     batch_size = 32
     epochs = 10
-    optimization_epochs = 2
-    num_of_generations = 7
-    initial_population_size = 5
-    max_population_size = 10
+    optimization_epochs = 10  # for testing
+    num_of_generations = 4
+    initial_population_size = 3
+    max_population_size = 3
+    color_mode = 'color'
 
     history_path_instead_of_evolution = None  # For evolution
     # history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
@@ -143,6 +145,8 @@ def build_mnist_cls(save_path, dataset_cls):
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
     objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.logloss)
+
+    input_channels = _get_image_channels_num(color_mode)
 
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
@@ -171,18 +175,20 @@ def build_mnist_cls(save_path, dataset_cls):
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
                                                              max_number_of_neurons=512)
     conv_requirements = nas_requirements.ConvRequirements(
-        min_number_of_neurons=16, max_number_of_neurons=128,
+        min_number_of_neurons=16, max_number_of_neurons=64,
         conv_strides=[1],
-        pool_size=[2], pool_strides=[2])
+        pool_size=[2], pool_strides=[2],
+        supplementary_pooling_prob=0.7
+    )
 
     kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
                                                                      max_number_of_neurons=128)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
-        min_number_of_neurons=2, max_number_of_neurons=16
+        min_number_of_neurons=3, max_number_of_neurons=24
     )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
-                                                            color_mode='grayscale',
+                                                            color_mode=color_mode,
                                                             num_of_classes=num_classes,
                                                             conv_requirements=conv_requirements,
                                                             fc_requirements=fc_requirements,
@@ -216,18 +222,18 @@ def build_mnist_cls(save_path, dataset_cls):
                                      device=device,
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
-    basic_graph_time = get_time_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, 1],
+    basic_graph_time = get_time_from_graph(generate_kkan_from_paper(), [image_side_size, image_side_size, input_channels],
                                            num_classes, device, batch_size)
     print("Basic graph time: ", basic_graph_time)
 
     def parameter_count_complexity_metric(graph: NasGraph):
-        return compute_total_graph_parameters(graph, [image_side_size, image_side_size, 1], num_classes)
+        return compute_total_graph_parameters(graph, [image_side_size, image_side_size, input_channels], num_classes)
 
     def flops_complexity_metric(graph: NasGraph):
-        return get_flops_from_graph(graph, [image_side_size, image_side_size, 1], num_classes)
+        return get_flops_from_graph(graph, [image_side_size, image_side_size, input_channels], num_classes)
 
     def time_complexity_metric(graph: NasGraph):
-        return get_time_from_graph(graph, [image_side_size, image_side_size, 1], num_classes, device, batch_size)
+        return get_time_from_graph(graph, [image_side_size, image_side_size, input_channels], num_classes, device, batch_size)
 
     validation_rules = [
         filter_size_increases_monotonically,
@@ -308,7 +314,7 @@ def build_mnist_cls(save_path, dataset_cls):
     final_results = {}
     for final_choice in final_choices:
         optimized_network = composer.optimizer.graph_generation_params.adapter.restore(final_choice.graph)
-        trainer = model_trainer.build([image_side_size, image_side_size, 1], num_classes,
+        trainer = model_trainer.build([image_side_size, image_side_size, input_channels], num_classes,
                                       optimized_network)
         trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs)
         predictions, targets = trainer.predict(final_test_dataloader)
@@ -338,8 +344,9 @@ def build_mnist_cls(save_path, dataset_cls):
 
 if __name__ == '__main__':
     for dataset_cls in [
-            MNIST,
-            # FashionMNIST
+        # MNIST,
+        # FashionMNIST
+        EuroSAT
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         build_mnist_cls(path, dataset_cls=dataset_cls)

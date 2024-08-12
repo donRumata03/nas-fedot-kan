@@ -109,7 +109,7 @@ class BaseLayerRequirements:
 
 @dataclass
 class ConvRequirements(BaseLayerRequirements):
-    filter_size_factor: int = 3
+    filter_size_factor: int = 1
     conv_strides: Optional[List[int], Tuple[int]] = None
     pool_size: Optional[List[int], Tuple[int]] = None
     pool_strides: Optional[List[int], Tuple[int]] = None
@@ -118,7 +118,7 @@ class ConvRequirements(BaseLayerRequirements):
     padding: Union[str, Collection[Collection[int]]] = None
     kernel_size: Union[List[int], Tuple[int]] = None
 
-    supplementary_pooling_prob: float = .3  # Nobody knows which order of magnitude this should be (or pretends so) → it's set to .5
+    supplementary_pooling_prob: float = .5  # Nobody knows which order of magnitude this should be (or pretends so) → it's set to .5
 
     def __post_init__(self):
         if not self.dilation_rate:
@@ -191,7 +191,7 @@ class ConvRequirements(BaseLayerRequirements):
 @dataclass
 class KANSplineRequirements:
     grid_size: List[int] = field(default_factory=lambda: [5, 10])  # 3?
-    spline_order: List[int] = field(default_factory=lambda: [3,])  # 2, 5?
+    spline_order: List[int] = field(default_factory=lambda: [3, ])  # 2, 5?
     # Shouldn't depend on torch, no need for excessive hyperparameters → just use SiLU
     # base_activation: List[torch.nn.Module] = field(default_factory=lambda: [torch.nn.SiLU])
 
@@ -227,7 +227,7 @@ class KANConvRequirements(KANSplineRequirements):
     kernel_size: List[int] = field(default_factory=lambda: [3, 5])
 
     pooling_prob: float = .8
-    pooling_kernel_size: List[int] = field(default_factory=lambda: [2,])  # Could be 3?
+    pooling_kernel_size: List[int] = field(default_factory=lambda: [2, ])  # Could be 3?
 
     # Padding would be computed automatically form kernel size to maintain the feature map size:
     # padding: List[int] = field(default_factory=lambda: [0, 1])
@@ -283,7 +283,8 @@ class ModelRequirements:
         if not self.kan_linear_requirements:
             self.kan_linear_requirements = KANLinearRequirements()
 
-        self.conv_requirements.filter_size_factor = _get_image_channels_num(self.color_mode)
+        # Regular convs can work with any dimensions:
+        # self.conv_requirements.filter_size_factor = _get_image_channels_num(self.color_mode)
         self.kan_conv_requirements.filter_size_factor = _get_image_channels_num(self.color_mode)
 
         if self.epochs < 1:

@@ -340,6 +340,7 @@ class NASTorchModel(torch.nn.Module):
                     self.eval()
                     val_metrics = self.validate(val_data, loss, device, metrics=metrics_to_val)
                 metrics.update(val_metrics)
+            print(f"Epoch: {epoch}, Current metrics: {metrics}")
 
     def predict(self,
                 test_data: DataLoader,
