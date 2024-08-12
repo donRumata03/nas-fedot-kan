@@ -79,6 +79,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         # NOTE: COMMENT OUT TO SKIP TRAINING IN DEBUG PURPOSES
         trainer.fit_model(train_data=opt_dataset,
                           # val_data=debug_test_data,
+                          timeout_seconds=self._requirements.optimization_fitting_timeout_seconds,
                           epochs=opt_epochs)
         return trainer
 

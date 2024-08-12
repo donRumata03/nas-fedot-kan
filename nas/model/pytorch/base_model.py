@@ -323,6 +323,7 @@ class NASTorchModel(torch.nn.Module):
             optimizer=torch.optim.AdamW,
             epochs: int = 1,
             device: str = 'cpu',
+            timeout_seconds: Optional[int] = None,
             **kwargs):
         """
         This function trains the pytorch module using given parameters
@@ -332,6 +333,7 @@ class NASTorchModel(torch.nn.Module):
         metrics = dict()
         optim = optimizer(self.parameters(), lr=kwargs.get('lr', 1e-3))
         pbar = tqdm.trange(epochs, desc='Fitting graph', leave=False, position=0)
+        start_time = timeit.default_timer()
         for epoch in pbar:
             self.train(mode=True)
             train_loss = self._one_epoch_train(train_data, optim, loss, device)
@@ -343,6 +345,8 @@ class NASTorchModel(torch.nn.Module):
                     self.train()
                 metrics.update(val_metrics)
             print(f"Epoch: {epoch}, Current metrics: {metrics}")
+            if timeout_seconds and timeit.default_timer() - start_time > timeout_seconds:
+                break
 
     def predict(self,
                 test_data: DataLoader,
