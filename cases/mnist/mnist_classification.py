@@ -134,7 +134,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
     epochs = 40
     optimization_epochs = 20
     num_of_generations = 6
-    initial_population_size = 1
+    initial_population_size = 5
     max_population_size = 5
     color_mode = 'color'
 
