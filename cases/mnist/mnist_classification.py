@@ -338,8 +338,8 @@ def build_mnist_cls(save_path, dataset_cls):
 
 if __name__ == '__main__':
     for dataset_cls in [
-            MNIST,
-            # FashionMNIST
+            # MNIST,
+            FashionMNIST
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         build_mnist_cls(path, dataset_cls=dataset_cls)
