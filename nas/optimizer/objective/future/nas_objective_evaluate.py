@@ -54,7 +54,7 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         del fitted_model
         return fold_fitness
 
-    def _graph_fit(self, graph: NasGraph, train_data: Dataset, log) -> NeuralSearchModel:
+    def _graph_fit(self, graph: NasGraph, train_data: Dataset, log, debug_test_data: Dataset) -> NeuralSearchModel:
         """
         This method compiles and fits a neural network based on given parameters and graph structure.
 
@@ -77,7 +77,9 @@ class NASObjectiveEvaluate(ObjectiveEvaluate):
         input_shape = self._requirements.model_requirements.input_shape
         trainer = self._model_trainer_builder.build(input_shape=input_shape, output_shape=classes, graph=graph)
         # NOTE: COMMENT OUT TO SKIP TRAINING IN DEBUG PURPOSES
-        trainer.fit_model(train_data=opt_dataset, epochs=opt_epochs)
+        trainer.fit_model(train_data=opt_dataset,
+                          val_data=debug_test_data,
+                          epochs=opt_epochs)
         return trainer
 
     def _evaluate_fitted_model(self, fitted_model: NeuralSearchModel, test_data: Dataset, graph: NasGraph,
