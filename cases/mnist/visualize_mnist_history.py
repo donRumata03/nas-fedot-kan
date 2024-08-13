@@ -11,8 +11,8 @@ from nas.graph.node.nas_graph_node import NasNode
 from nas.utils.utils import project_root
 
 # path = project_root() / "_results/debug/master_2/2024-08-09_23-30-56/history.json"
-# path = r"D:\dev\aim\nas_kan_results\_results\kan-mnist-no-final-fitting\history.json"
-path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-13_01-38-24\history.json"
+path = r"D:\dev\aim\nas_kan_results\_results\smaller-kans-mnist\history.json"
+# path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-13_01-38-24\history.json"
 
 history = OptHistory.load(path)
 
