@@ -231,7 +231,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=4.5),
+                                                           timeout=datetime.timedelta(hours=20.5),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
@@ -344,7 +344,7 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
         optimized_network = composer.optimizer.graph_generation_params.adapter.restore(final_choice.graph)
         trainer = model_trainer.build([image_side_size, image_side_size, input_channels], num_classes,
                                       optimized_network)
-        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs, timeout_seconds=60 * 20)
+        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs, timeout_seconds=60 * 50)
         predictions, targets = trainer.predict(final_test_dataloader)
 
         loss = log_loss(targets, predictions)
@@ -378,4 +378,4 @@ if __name__ == '__main__':
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         print(f"Save path: {path}")
-        build_mnist_cls(path, dataset_cls=dataset_cls, is_kan=False)
+        build_mnist_cls(path, dataset_cls=dataset_cls, is_kan=True)
