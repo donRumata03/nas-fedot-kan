@@ -12,6 +12,8 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 from matplotlib import pyplot as plt
 from typing import Tuple, List
 
+from seaborn import histplot
+
 from nas.graph.base_graph import NasGraph
 from nas.graph.node.adapter import NasNodeOperatorAdapter
 from nas.graph.node.nas_graph_node import NasNode
@@ -45,14 +47,17 @@ def deduplicate_by_lambda(items, key_func):
     return result
 
 
-def individuals_pool(history):
+def get_individual_dump(history):
     res = []
     for gen in history.individuals:
         for ind in gen:
             res.append(ind)
 
-    res = deduplicate_by_lambda(res, lambda x: x.uid)
     return res
+
+
+def individuals_pool(history):
+    return deduplicate_by_lambda(get_individual_dump(history), lambda x: x.uid)
 
 
 def plot_opt_fitness_scatter(history_path):
@@ -146,6 +151,14 @@ def plot_final_pareto_front(history, final_results, case_name: str, label: str, 
     )
 
 
+def plot_parameter_number_hist(history):
+    param_values = []
+    for ind in get_individual_dump(history):
+        param_values.append(ind.fitness.values[1])
+
+    histplot(param_values, log_scale=True, bins=5)
+
+
 def main():
     for dataset in dataset_results_dir:
         for model in dataset_results_dir[dataset]:
@@ -156,10 +169,12 @@ def main():
             final_results_json = json.load(open(base_eval_path + "/final_results.json"))
 
             # plot_opt_pareto_front(history, label=model, case_name=dataset)
-            plot_final_pareto_front(history, final_results_json, label=model, case_name=dataset,
-                                    final_metric_name="accuracy")
-        plt.legend()
-        plt.show()
+            # plot_final_pareto_front(history, final_results_json, label=model, case_name=dataset,
+            #                         final_metric_name="accuracy")
+            plot_parameter_number_hist(history)
+            plt.show()
+        # plt.legend()
+        # plt.show()
 
 
 if __name__ == '__main__':
