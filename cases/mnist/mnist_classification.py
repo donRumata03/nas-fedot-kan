@@ -131,8 +131,8 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     num_classes = 10
     image_side_size = 64
     batch_size = 16
-    epochs = 40
-    optimization_epochs = 20
+    epochs = 70
+    optimization_epochs = 50
     num_of_generations = 6
     initial_population_size = 5
     max_population_size = 5
@@ -347,7 +347,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         optimized_network = composer.optimizer.graph_generation_params.adapter.restore(final_choice.graph)
         trainer = model_trainer.build([image_side_size, image_side_size, input_channels], num_classes,
                                       optimized_network)
-        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs, timeout_seconds=60 * 50)
+        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs, timeout_seconds=60 * 150)
         predictions, targets = trainer.predict(final_test_dataloader)
 
         loss = log_loss(targets, predictions)
