@@ -100,10 +100,14 @@ class ConvGraphMaker(GraphGenerator):
         return node
 
     def build_one_graph(self) -> NasGraph:
-        generation_function = (
-            lambda: self._generate_from_scratch(LayersPoolEnum.kan_conv2d, LayersPoolEnum.kan_linear)) \
-            if self.requirements.is_kan() else (lambda: self._generate_from_scratch(LayersPoolEnum.conv2d,
-                                                                                    LayersPoolEnum.linear))
+        # generation_function = (
+        #     lambda: self._generate_from_scratch(LayersPoolEnum.kan_conv2d, LayersPoolEnum.kan_linear)) \
+        #     if self.requirements.linear_is_kan() else (lambda: self._generate_from_scratch(LayersPoolEnum.conv2d,
+        #                                                                                    LayersPoolEnum.linear))
+        generation_function = lambda: self._generate_from_scratch(
+            LayersPoolEnum.kan_conv2d if self.requirements.conv_is_kan() else LayersPoolEnum.conv2d,
+            LayersPoolEnum.kan_linear if self.requirements.linear_is_kan() else LayersPoolEnum.linear
+        )
         for _ in range(self._generation_attempts):
             graph = NasGraph()
             parent_node = None

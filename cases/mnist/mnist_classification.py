@@ -125,7 +125,7 @@ def generate_basic_kkan(starting_value, factor) -> NasGraph:
     return graph
 
 
-def build_mnist_cls(save_path, dataset_cls, is_kan=False):
+def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=False):
     visualize = False
     cv_folds = None
     num_classes = 10
@@ -173,31 +173,32 @@ def build_mnist_cls(save_path, dataset_cls, is_kan=False):
                                    target_transform=one_hot_encode)
         assert num_classes == len(dataset_train.classes)
 
-    if is_kan:
-        conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
+    if linear_is_kan:
         fc_layers_pool = [LayersPoolEnum.kan_linear, ]
-
         min_fc_layers = 1
-        max_fc_layers = 1
+        max_fc_layers = 3
+    else:
+        fc_layers_pool = [LayersPoolEnum.linear, ]
+        min_fc_layers = 2
+        max_fc_layers = 3
 
+    if conv_is_kan:
+        conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
         min_conv_layers = 2
         max_conv_layers = 4
     else:
         conv_layers_pool = [LayersPoolEnum.conv2d, ]
-        fc_layers_pool = [LayersPoolEnum.linear, ]
-
-        min_fc_layers = 2
-        max_fc_layers = 3
 
         min_conv_layers = 2
         max_conv_layers = 8
+
 
 
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
 
     fc_requirements = nas_requirements.BaseLayerRequirements(min_number_of_neurons=32,
-                                                             max_number_of_neurons=512)
+                                                             max_number_of_neurons=128)
     conv_requirements = nas_requirements.ConvRequirements(
         min_number_of_neurons=16, max_number_of_neurons=64,
         conv_strides=[1],
@@ -378,4 +379,4 @@ if __name__ == '__main__':
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         print(f"Save path: {path}")
-        build_mnist_cls(path, dataset_cls=dataset_cls, is_kan=True)
+        build_mnist_cls(path, dataset_cls=dataset_cls, linear_is_kan=True, conv_is_kan=False)

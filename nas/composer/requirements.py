@@ -320,12 +320,19 @@ class ModelRequirements:
     def min_depth(self):
         return self.min_nn_depth + self.min_num_of_conv_layers
 
-    def is_kan(self):
+    def linear_is_kan(self):
         if LayersPoolEnum.kan_linear in self.secondary:
             return True
         elif LayersPoolEnum.linear in self.secondary:
             return False
         raise ValueError('No linear layer in the secondary list')
+
+    def conv_is_kan(self):
+        if LayersPoolEnum.conv2d in self.primary:
+            return True
+        elif LayersPoolEnum.kan_conv2d in self.primary:
+            return False
+        raise ValueError('No linear layer in the primary list')
 
 
 @dataclass
