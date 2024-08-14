@@ -328,9 +328,9 @@ class ModelRequirements:
         raise ValueError('No linear layer in the secondary list')
 
     def conv_is_kan(self):
-        if LayersPoolEnum.conv2d in self.primary:
+        if LayersPoolEnum.kan_conv2d in self.primary:
             return True
-        elif LayersPoolEnum.kan_conv2d in self.primary:
+        elif LayersPoolEnum.conv2d in self.primary:
             return False
         raise ValueError('No linear layer in the primary list')
 
