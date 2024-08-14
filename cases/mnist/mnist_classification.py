@@ -192,8 +192,6 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         min_conv_layers = 2
         max_conv_layers = 8
 
-
-
     mutations = [MutationTypesEnum.single_add, MutationTypesEnum.single_drop, MutationTypesEnum.single_edge,
                  MutationTypesEnum.single_change]
 
@@ -265,11 +263,15 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
                                    batch_size)
 
     validation_rules = [
-        filter_size_increases_monotonically,
-        no_linear_layers_before_flatten,
         model_has_several_starts, model_has_no_conv_layers, model_has_wrong_number_of_flatten_layers,
         model_has_several_roots,
-        has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools, model_has_dim_mismatch,
+        has_no_cycle, has_no_self_cycled_nodes, skip_has_no_pools,
+
+        filter_size_increases_monotonically,
+        no_linear_layers_before_flatten,
+
+        model_has_dim_mismatch,
+
         has_too_much_parameters(1_500_000, parameter_count_complexity_metric),
         # has_too_much_flops(3_000_000, flops_complexity_metric)
         has_too_much_time(basic_graph_time * 2.5, time_complexity_metric)
