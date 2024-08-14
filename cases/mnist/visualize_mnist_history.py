@@ -11,8 +11,8 @@ from nas.graph.node.nas_graph_node import NasNode
 from nas.utils.utils import project_root
 
 # path = project_root() / "_results/debug/master_2/2024-08-09_23-30-56/history.json"
-path = r"D:\dev\aim\nas_kan_results\_results\smaller-kans-mnist\history.json"
-# path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-13_01-38-24\history.json"
+# path = r"D:\dev\aim\nas_kan_results\_results\smaller-kans-mnist\history.json"
+path = r"D:\dev\aim\nas-fedot-kan\_results\debug\master_2\2024-08-14_17-28-44\history.json"
 
 history = OptHistory.load(path)
 
@@ -28,18 +28,23 @@ for generation in history.individuals:
                 break
 
 # Check if some of the nodes are kan_linear:
-for generation in history.individuals:
-    for ind in generation:
-        graph = ind.graph
-        for node in graph.nodes:
-            if node.content["name"] == "kan_linear":
-                print(f"KANLinear node found in graph: {graph}, {node.uid}")
-                break
+from visualize_comparisons import get_individual_dump
+linear_count = 0
 
-            if node.content["name"] == "linear":
-                print(f"Linear node found in graph: {graph}, {node.uid}")
-                print(node.content)
-                break
+for ind in get_individual_dump(history):
+    graph = ind.graph
+    for node in graph.nodes:
+        if node.content["name"] == "kan_linear":
+            print(f"KANLinear node found in graph: {graph}, {node.uid}")
+            linear_count += 1
+            break
+
+        if node.content["name"] == "linear":
+            print(f"Linear node found in graph: {graph}, {node.uid}")
+            linear_count += 1
+            break
+
+print(f"Percentage of graphs containing linear layers: {linear_count / len(get_individual_dump(history))}")
 
 # Plot hist of total parameter count or flops for all individuals in the history:
 values = []
