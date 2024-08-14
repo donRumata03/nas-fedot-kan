@@ -136,7 +136,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     num_of_generations = 7
     initial_population_size = 5
     max_population_size = 10
-    color_mode = 'color'
+    color_mode = 'greyscale'
 
     history_path_instead_of_evolution = None  # For evolution
     # history_path_instead_of_evolution = project_root() / "_results/kan-mnist-no-final-fitting/history.json"  # For skipping the evolution step, just loading the history of a ready evolution
