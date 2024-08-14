@@ -129,13 +129,13 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     visualize = False
     cv_folds = None
     num_classes = 10
-    image_side_size = 64
+    image_side_size = 28
     batch_size = 16
-    epochs = 40
-    optimization_epochs = 20
-    num_of_generations = 6
+    epochs = 10
+    optimization_epochs = 2
+    num_of_generations = 7
     initial_population_size = 5
-    max_population_size = 5
+    max_population_size = 10
     color_mode = 'color'
 
     history_path_instead_of_evolution = None  # For evolution
@@ -148,9 +148,9 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     input_channels = _get_image_channels_num(color_mode)
 
     transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-        transforms.RandomRotation(15),
+        # transforms.RandomHorizontalFlip(),
+        # transforms.RandomVerticalFlip(),
+        # transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
     ])
@@ -190,7 +190,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         conv_layers_pool = [LayersPoolEnum.conv2d, ]
 
         min_conv_layers = 2
-        max_conv_layers = 8
+        max_conv_layers = 6
 
 
 
@@ -203,7 +203,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         min_number_of_neurons=16, max_number_of_neurons=64,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2],
-        supplementary_pooling_prob=0.7
+        supplementary_pooling_prob=0.5
     )
 
     kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
@@ -232,7 +232,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=18.),
+                                                           timeout=datetime.timedelta(hours=5.5),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
@@ -249,7 +249,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
                                      device=device,
                                      loss_function=CrossEntropyLoss(), optimizer=AdamW)
 
-    basic_graph_time = get_time_from_graph(generate_basic_kkan(input_channels, 4),
+    basic_graph_time = get_time_from_graph(generate_basic_kkan(input_channels, 5),
                                            [image_side_size, image_side_size, input_channels],
                                            num_classes, device, batch_size)
     print("Basic graph time: ", basic_graph_time)
@@ -373,9 +373,9 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
 if __name__ == '__main__':
     for dataset_cls in [
-        # MNIST,
-        # FashionMNIST
-        EuroSAT
+        MNIST,
+        FashionMNIST
+        # EuroSAT
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         print(f"Save path: {path}")
