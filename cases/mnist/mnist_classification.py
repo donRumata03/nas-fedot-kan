@@ -198,7 +198,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     if conv_is_kan:
         conv_layers_pool = [LayersPoolEnum.kan_conv2d, ]
         min_conv_layers = 2
-        max_conv_layers = 4
+        max_conv_layers = 3
     else:
         conv_layers_pool = [LayersPoolEnum.conv2d, ]
 
@@ -388,12 +388,12 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
 if __name__ == '__main__':
     for dataset_cls in [
-        # CachedMNIST,
-        CachedFashionMNIST,
+        CachedMNIST,
+        # CachedFashionMNIST,
         # MNIST,
         # FashionMNIST
         # EuroSAT
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         print(f"Save path: {path}")
-        build_mnist_cls(path, dataset_cls=dataset_cls, linear_is_kan=False, conv_is_kan=False)
+        build_mnist_cls(path, dataset_cls=dataset_cls, linear_is_kan=True, conv_is_kan=True)
