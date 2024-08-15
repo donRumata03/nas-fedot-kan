@@ -35,7 +35,7 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from nas.utils.random_split_hack import random_split
 from torchvision.datasets import FashionMNIST, MNIST
-from cases.mnist.eurosat_dataset import EuroSAT
+from cases.mnist.cached_datasets import EuroSAT, CachedFashionMNIST, CachedMNIST
 from torchvision.transforms import transforms
 
 import nas.composer.requirements as nas_requirements
@@ -148,9 +148,13 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     input_channels = _get_image_channels_num(color_mode)
 
     transform = transforms.Compose([
+        # Only for eurosat
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         # transforms.RandomRotation(15),
+
+        transforms.Grayscale(),  # Only for mnist
+
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
     ])
@@ -159,18 +163,27 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         return torch.nn.functional.one_hot(torch.tensor(target), num_classes=num_classes).float()
 
     dataset_path = project_root() / "cases/mnist"
-    if dataset_cls is EuroSAT:
+
+    if dataset_cls is [EuroSAT, ]:
         dataset_train, dataset_test = random_split(
-            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, download=True, eager=True,
+            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, eager=True,
                     cache_before_transform=True),
             [.7, .3]
         )
         assert num_classes == len(dataset_train.dataset.classes)
-    else:
+    elif dataset_cls in [MNIST, FashionMNIST]:
         dataset_train = dataset_cls(root=dataset_path, train=True, download=True, transform=transform,
                                     target_transform=one_hot_encode)
         dataset_test = dataset_cls(root=dataset_path, train=False, download=True, transform=transform,
                                    target_transform=one_hot_encode)
+        assert num_classes == len(dataset_train.classes)
+    elif dataset_cls in [CachedMNIST, CachedFashionMNIST]:
+        dataset_train = dataset_cls(root=dataset_path, train=True, transform=transform, target_transform=one_hot_encode,
+                                    eager=True,
+                                    cache_before_transform=True)
+        dataset_test = dataset_cls(root=dataset_path, train=False, transform=transform, target_transform=one_hot_encode,
+                                   eager=True,
+                                   cache_before_transform=True)
         assert num_classes == len(dataset_train.classes)
 
     if linear_is_kan:
@@ -375,8 +388,10 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
 if __name__ == '__main__':
     for dataset_cls in [
-        MNIST,
-        FashionMNIST
+        CachedMNIST,
+        CachedFashionMNIST,
+        # MNIST,
+        # FashionMNIST
         # EuroSAT
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
