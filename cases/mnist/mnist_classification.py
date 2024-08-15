@@ -388,8 +388,8 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
 if __name__ == '__main__':
     for dataset_cls in [
-        # CachedMNIST,
-        CachedFashionMNIST,
+        CachedMNIST,
+        # CachedFashionMNIST,
         # MNIST,
         # FashionMNIST
         # EuroSAT
