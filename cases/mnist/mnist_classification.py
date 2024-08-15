@@ -132,7 +132,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     image_side_size = 28
     batch_size = 16
     epochs = 10
-    optimization_epochs = 2
+    optimization_epochs = 7
     num_of_generations = 7
     initial_population_size = 5
     max_population_size = 10
