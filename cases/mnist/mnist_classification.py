@@ -221,7 +221,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
                                                                      max_number_of_neurons=128)
     kan_conv_requirements = nas_requirements.KANConvRequirements(
         min_number_of_neurons=3, max_number_of_neurons=24,
-        pooling_prob=0.9
+        pooling_prob=0.7
     )
 
     model_requirements = nas_requirements.ModelRequirements(input_data_shape=[image_side_size, image_side_size],
@@ -396,4 +396,4 @@ if __name__ == '__main__':
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         print(f"Save path: {path}")
-        build_mnist_cls(path, dataset_cls=dataset_cls, linear_is_kan=True, conv_is_kan=False)
+        build_mnist_cls(path, dataset_cls=dataset_cls, linear_is_kan=False, conv_is_kan=False)
