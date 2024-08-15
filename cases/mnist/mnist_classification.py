@@ -188,8 +188,8 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     if linear_is_kan:
         fc_layers_pool = [LayersPoolEnum.kan_linear, ]
-        min_fc_layers = 2
-        max_fc_layers = 3
+        min_fc_layers = 1
+        max_fc_layers = 1
     else:
         fc_layers_pool = [LayersPoolEnum.linear, ]
         min_fc_layers = 2
