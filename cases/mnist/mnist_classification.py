@@ -131,11 +131,11 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     num_classes = 10
     image_side_size = 28
     batch_size = 16
-    epochs = 10
-    optimization_epochs = 7
-    num_of_generations = 7
+    epochs = 50
+    optimization_epochs = 30
+    num_of_generations = 6
     initial_population_size = 5
-    max_population_size = 10
+    max_population_size = 5
     color_mode = 'grayscale'
 
     history_path_instead_of_evolution = None  # For evolution
@@ -180,10 +180,10 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     elif dataset_cls in [CachedMNIST, CachedFashionMNIST]:
         dataset_train = dataset_cls(root=dataset_path, train=True, transform=transform, target_transform=one_hot_encode,
                                     eager=True,
-                                    cache_before_transform=True)
+                                    cache_before_transform=False)
         dataset_test = dataset_cls(root=dataset_path, train=False, transform=transform, target_transform=one_hot_encode,
                                    eager=True,
-                                   cache_before_transform=True)
+                                   cache_before_transform=False)
         assert num_classes == len(dataset_train.classes)
 
     if linear_is_kan:
@@ -360,7 +360,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         optimized_network = composer.optimizer.graph_generation_params.adapter.restore(final_choice.graph)
         trainer = model_trainer.build([image_side_size, image_side_size, input_channels], num_classes,
                                       optimized_network)
-        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs, timeout_seconds=60 * 50)
+        trainer.fit_model(final_train_dataloader, final_val_dataloader, epochs, timeout_seconds=60 * 40)
         predictions, targets = trainer.predict(final_test_dataloader)
 
         loss = log_loss(targets, predictions)
@@ -388,7 +388,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
 if __name__ == '__main__':
     for dataset_cls in [
-        CachedMNIST,
+        # CachedMNIST,
         CachedFashionMNIST,
         # MNIST,
         # FashionMNIST
