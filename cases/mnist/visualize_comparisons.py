@@ -21,17 +21,19 @@ from nas.utils.utils import project_root
 
 dataset_results_dir = {
     "MNIST": {
-        "kan": r"D:\dev\aim\nas_kan_results\_results\smaller-kans-mnist",
-        "cnn": r"D:\dev\aim\nas_kan_results\_results\better-cnn-mnist",
+        "kan": r"C:\dev\aim\nas_kan_results\_results\smaller-kans-mnist",
+        "cnn": r"C:\dev\aim\nas_kan_results\_results\better-cnn-mnist",
     },
     "FashionMNIST": {
-        "smaller-kan": r"D:\dev\aim\nas_kan_results\_results\smaller-kan-fashion",
-        "kan": r"D:\dev\aim\nas_kan_results\_results\kan-fashion-mnist",
-        "cnn": r"D:\dev\aim\nas_kan_results\_results\better-cnn-fashion",
+        "smaller-kan": r"C:\dev\aim\nas_kan_results\_results\smaller-kan-fashion",
+        "kan": r"C:\dev\aim\nas_kan_results\_results\kan-fashion-mnist",
+        "cnn": r"C:\dev\aim\nas_kan_results\_results\better-cnn-fashion",
     },
     "EuroSAT": {
-        "kan": r"D:\dev\aim\nas_kan_results\_results\eurosat-kan",
-        "cnn": r"D:\dev\aim\nas_kan_results\_results\eurosat-cnn",
+        # "kan": r"C:\dev\aim\nas_kan_results\_results\eurosat-kan",
+        "kan": r"C:\dev\aim\nas_kan_results\_results\more-iters-kan-eurosat",
+        "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\cnn-kan-eurosat-many-epochs",
+        "cnn": r"C:\dev\aim\nas_kan_results\_results\eurosat-cnn",
     },
 }
 
@@ -169,12 +171,12 @@ def main():
             final_results_json = json.load(open(base_eval_path + "/final_results.json"))
 
             # plot_opt_pareto_front(history, label=model, case_name=dataset)
-            # plot_final_pareto_front(history, final_results_json, label=model, case_name=dataset,
-            #                         final_metric_name="accuracy")
-            plot_parameter_number_hist(history)
-            plt.show()
-        # plt.legend()
-        # plt.show()
+            plot_final_pareto_front(history, final_results_json, label=model, case_name=dataset,
+                                    final_metric_name="accuracy")
+            # plot_parameter_number_hist(history)
+            # plt.show()
+        plt.legend()
+        plt.show()
 
 
 if __name__ == '__main__':
