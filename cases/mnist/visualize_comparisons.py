@@ -21,13 +21,25 @@ from nas.utils.utils import project_root
 
 dataset_results_dir = {
     "MNIST": {
-        "kan": r"C:\dev\aim\nas_kan_results\_results\smaller-kans-mnist",
-        "cnn": r"C:\dev\aim\nas_kan_results\_results\better-cnn-mnist",
+        # Less iterations:
+        "less-iter-kan": r"C:\dev\aim\nas_kan_results\_results\smaller-kans-mnist",
+        "less-iter-cnn": r"C:\dev\aim\nas_kan_results\_results\better-cnn-mnist",
+
+        # More iterations:
+        "kan": r"C:\dev\aim\nas_kan_results\_results\kan-much-epochs-mnist",
+        "cnn": r"C:\dev\aim\nas_kan_results\_results\cnn-much-epochs-mnist",
+        "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\cnn-kan-much-epochs-mnist",
     },
     "FashionMNIST": {
-        "smaller-kan": r"C:\dev\aim\nas_kan_results\_results\smaller-kan-fashion",
-        "kan": r"C:\dev\aim\nas_kan_results\_results\kan-fashion-mnist",
-        "cnn": r"C:\dev\aim\nas_kan_results\_results\better-cnn-fashion",
+        # Less iterations:
+        "less-iter-smaller-kan": r"C:\dev\aim\nas_kan_results\_results\smaller-kan-fashion",
+        "less-iter-kan": r"C:\dev\aim\nas_kan_results\_results\kan-fashion-mnist",
+        "less-iter-cnn": r"C:\dev\aim\nas_kan_results\_results\better-cnn-fashion",
+
+        # More iterations:
+        # "kan": TODO
+        "cnn": r"C:\dev\aim\nas_kan_results\_results\cnn-fashion-mnist-much-epochs",
+        "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\kan-cnn-fashion-mnist-more-epochs",
     },
     "EuroSAT": {
         # "kan": r"C:\dev\aim\nas_kan_results\_results\eurosat-kan",
@@ -89,11 +101,15 @@ def visualise_pareto_front(front: Sequence[Individual | List[float]],
         pareto_obj_second.append(abs(fit_second))
 
     plt.scatter(pareto_obj_first, pareto_obj_second, c=color)
+    # Log scale for x axis
+    plt.xscale('log')
     plt.plot(pareto_obj_first, pareto_obj_second, color=color, label=label)
 
     plt.title(f'Pareto frontier for {case_name}', fontsize=15)
     plt.xlabel(objectives_names[0], fontsize=15)
     plt.ylabel(objectives_names[1], fontsize=15)
+    # Log scale for x axis
+    plt.xscale('log')
 
     if minmax_x is not None:
         plt.xlim(minmax_x[0], minmax_x[1])
