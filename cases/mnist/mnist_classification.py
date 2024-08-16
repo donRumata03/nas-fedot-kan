@@ -214,7 +214,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         min_number_of_neurons=16, max_number_of_neurons=64,
         conv_strides=[1],
         pool_size=[2], pool_strides=[2],
-        supplementary_pooling_prob=0.5
+        supplementary_pooling_prob=0.7
     )
 
     kan_linear_requirements = nas_requirements.KANLinearRequirements(min_number_of_neurons=32,
