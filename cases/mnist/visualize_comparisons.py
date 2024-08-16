@@ -100,16 +100,15 @@ def visualise_pareto_front(front: Sequence[Individual | List[float]],
         fit_second = fitness_list[objectives_numbers[1]]
         pareto_obj_second.append(abs(fit_second))
 
+    # plt.xscale('log')
     plt.scatter(pareto_obj_first, pareto_obj_second, c=color)
-    # Log scale for x axis
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.plot(pareto_obj_first, pareto_obj_second, color=color, label=label)
 
     plt.title(f'Pareto frontier for {case_name}', fontsize=15)
     plt.xlabel(objectives_names[0], fontsize=15)
     plt.ylabel(objectives_names[1], fontsize=15)
-    # Log scale for x axis
-    plt.xscale('log')
+    # plt.xscale('log')
 
     if minmax_x is not None:
         plt.xlim(minmax_x[0], minmax_x[1])
