@@ -29,6 +29,7 @@ dataset_results_dir = {
         "kan": r"C:\dev\aim\nas_kan_results\_results\kan-much-epochs-mnist",
         "cnn": r"C:\dev\aim\nas_kan_results\_results\cnn-much-epochs-mnist",
         "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\cnn-kan-much-epochs-mnist",
+        "cnn-kan-smaller": r"C:\dev\aim\nas_kan_results\_results\mnist-kan-cnn-smaller",
     },
     "FashionMNIST": {
         # Less iterations:
@@ -176,7 +177,7 @@ def plot_parameter_number_hist(history):
     histplot(param_values, log_scale=True, bins=4)
 
 
-def main():
+def plot_all_pareto_fronts():
     for dataset in dataset_results_dir:
         for model in dataset_results_dir[dataset]:
             print(f"Dataset: {dataset}, Model: {model}")
@@ -186,14 +187,24 @@ def main():
             final_results_json = json.load(open(base_eval_path + "/final_results.json"))
 
             # plot_opt_pareto_front(history, label=model, case_name=dataset)
-            # plot_final_pareto_front(history, final_results_json, label=model, case_name=dataset,
-            #                         final_metric_name="accuracy")
+            plot_final_pareto_front(history, final_results_json, label=model, case_name=dataset,
+                                    final_metric_name="accuracy")
+        plt.legend()
+        plt.show()
+
+
+def plot_parameter_numbers():
+    for dataset in dataset_results_dir:
+        for model in dataset_results_dir[dataset]:
+            print(f"Dataset: {dataset}, Model: {model}")
+            base_eval_path = dataset_results_dir[dataset][model]
+            history_path = base_eval_path + "/history.json"
+            history = OptHistory.load(history_path)
+
             plot_parameter_number_hist(history)
             plt.title(f"Parameter number distribution for {dataset} {model}")
             plt.show()
-        # plt.legend()
-        # plt.show()
 
 
 if __name__ == '__main__':
-    main()
+    plot_all_pareto_fronts()
