@@ -4,7 +4,7 @@ import torch.nn as nn
 from golem.core.dag.graph_node import GraphNode
 
 from nas.graph.node.nas_graph_node import NasNode
-from nas.model.pytorch.layers.kan_convolutional.KANConv import KAN_Convolutional_Layer
+from nas.model.pytorch.layers.kan_convolutional.KANConv import KAN_Convolutional_Layer, KAN_CrossConvolution
 from nas.model.pytorch.layers.kan_convolutional.KANLinear import KANLinear
 
 
@@ -37,8 +37,18 @@ def kan_conv2d(node: NasNode, **inputs_dict):
     grid_size = node.parameters.get('grid_size')
     spline_order = node.parameters.get('spline_order')
 
-    return KAN_Convolutional_Layer(
-        n_convs=out_shape // input_dim,
+    # return KAN_Convolutional_Layer(
+    #     n_convs=out_shape // input_dim,
+    #     kernel_size=(kernel_size, kernel_size),
+    #     stride=(1, 1),
+    #     padding=(padding, padding),
+    # 
+    #     grid_size=grid_size,
+    #     spline_order=spline_order
+    # )
+    return KAN_CrossConvolution(
+        in_channels=input_dim,
+        out_channels=out_shape,
         kernel_size=(kernel_size, kernel_size),
         stride=(1, 1),
         padding=(padding, padding),

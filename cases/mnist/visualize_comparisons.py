@@ -41,6 +41,7 @@ dataset_results_dir = {
         "kan": r"C:\dev\aim\nas_kan_results\_results\kan-fashion-mnist-much-epochs",
         "cnn": r"C:\dev\aim\nas_kan_results\_results\cnn-fashion-mnist-much-epochs",
         "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\kan-cnn-fashion-mnist-more-epochs",
+        "dense-kan": r"C:\dev\aim\nas_kan_results\_results\dense-kans-fashion",
     },
     "EuroSAT": {
         # "kan": r"C:\dev\aim\nas_kan_results\_results\eurosat-kan",

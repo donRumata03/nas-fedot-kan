@@ -203,6 +203,6 @@ class KAN_CrossConvolution(torch.nn.Module):
         return next(self.parameters()).device
 
     def forward(self, x: torch.Tensor, update_grid=False):
-        return convolution.deep_conv_kan_conv2d(x, self.conv,
+        return convolution.deep_conv_kan_conv2d(x, self,
                                                 self.kernel_size[0], self.stride, self.dilation,
                                                 self.padding, self.device)
