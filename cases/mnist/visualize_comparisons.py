@@ -30,6 +30,7 @@ dataset_results_dir = {
         "cnn": r"C:\dev\aim\nas_kan_results\_results\cnn-much-epochs-mnist",
         "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\cnn-kan-much-epochs-mnist",
         "cnn-kan-smaller": r"C:\dev\aim\nas_kan_results\_results\mnist-kan-cnn-smaller",
+        "dense-kan": r"C:\dev\aim\nas_kan_results\_results\dense-kan-mnist"
     },
     "FashionMNIST": {
         # Less iterations:
