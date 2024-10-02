@@ -131,11 +131,11 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     num_classes = 10
     image_side_size = 28
     batch_size = 16
-    epochs = 50
-    optimization_epochs = 30
+    epochs = 30
+    optimization_epochs = 10
     num_of_generations = 6
-    initial_population_size = 2
-    max_population_size = 2
+    initial_population_size = 5
+    max_population_size = 5
     color_mode = 'grayscale'
 
     history_path_instead_of_evolution = None  # For evolution
@@ -144,9 +144,6 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
     objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.accuracy)
-
-    # def objective_function(g: NasGraph):
-    #     return -raw_accuracy(g)
 
     input_channels = _get_image_channels_num(color_mode)
 
@@ -247,7 +244,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=5.),
+                                                           timeout=datetime.timedelta(hours=3.),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
@@ -262,7 +259,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel,
                                      device=device,
-                                     loss_function=CrossEntropyLoss(), optimizer=AdamW, metrics=[accuracy_score])
+                                     loss_function=CrossEntropyLoss(), optimizer=AdamW, metrics=[lambda *args: -accuracy_score(*args)])
 
     basic_graph_time = get_time_from_graph(generate_basic_kkan(input_channels, 5),
                                            [image_side_size, image_side_size, input_channels],
