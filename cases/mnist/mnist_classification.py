@@ -143,7 +143,10 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
-    objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.accuracy)
+    raw_accuracy = MetricsRepository().metric_by_id(ClassificationMetricsEnum.accuracy)
+
+    def objective_function(g: NasGraph):
+        return -raw_accuracy(g)
 
     input_channels = _get_image_channels_num(color_mode)
 
