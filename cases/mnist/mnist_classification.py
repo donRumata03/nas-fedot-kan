@@ -143,7 +143,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
-    objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.logloss)
+    objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.accuracy)
 
     input_channels = _get_image_channels_num(color_mode)
 
@@ -396,4 +396,4 @@ if __name__ == '__main__':
     ]:
         path = f'./_results/debug/master_2/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
         print(f"Save path: {path}")
-        build_mnist_cls(path, dataset_cls=dataset_cls, linear_is_kan=True, conv_is_kan=True)
+        build_mnist_cls(path, dataset_cls=dataset_cls, linear_is_kan=False, conv_is_kan=False)
