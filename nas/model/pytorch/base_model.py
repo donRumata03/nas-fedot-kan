@@ -300,19 +300,30 @@ class NASTorchModel(torch.nn.Module):
 
     def validate(self, val_data: DataLoader, loss_fn, device, **kwargs) -> Dict:
         self.eval()
+        self.set_device(device)
         metrics_to_calc = kwargs.get('metrics')
-        metrics = {'val_loss': 0}
+        # Would do if there weren't cpu←—→gpu transitions
+        # if metrics_to_calc is None:
+        #     metrics_to_calc = {"loss": loss_fn}
+
+        if metrics_to_calc is None:
+            metrics = {'val_loss': 0}
+        else:
+            metrics = {}
+
         for batch_id, (features_batch, targets_batch) in enumerate(val_data):
             features_batch, targets_batch = features_batch.to(device), targets_batch.to(device)
             outputs = self.__call__(features_batch)
+            major_outputs = torch.argmax(outputs, dim=-1)  # Softmax is omitted
             loss = loss_fn(outputs, targets_batch)
-            metrics['val_loss'] += loss.detach().cpu().item()
+            if metrics_to_calc is None:
+                metrics['val_loss'] += loss.detach().cpu().item()
             if metrics_to_calc:
                 for metric_name, metric_func in metrics_to_calc.items():
                     if metrics.get(f'val_{metric_name}') is None:
                         metrics[f'val_{metric_name}'] = 0
-                    metrics[f'val_{metric_name}'] += metric_func(outputs.detach().cpu().numpy(),
-                                                                 targets_batch.detach().cpu().numpy())
+                    metrics[f'val_{metric_name}'] += metric_func(major_outputs.detach().cpu().numpy(),
+                                                                 torch.argmax(targets_batch, dim=-1).detach().cpu().numpy())
 
         metrics = {key: val / len(val_data) for key, val in metrics.items()}
         return metrics

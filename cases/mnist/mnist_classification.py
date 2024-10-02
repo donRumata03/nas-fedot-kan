@@ -134,8 +134,8 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     epochs = 50
     optimization_epochs = 30
     num_of_generations = 6
-    initial_population_size = 5
-    max_population_size = 5
+    initial_population_size = 2
+    max_population_size = 2
     color_mode = 'grayscale'
 
     history_path_instead_of_evolution = None  # For evolution
@@ -143,10 +143,10 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     set_root(project_root())
     task = Task(TaskTypesEnum.classification)
-    raw_accuracy = MetricsRepository().metric_by_id(ClassificationMetricsEnum.accuracy)
+    objective_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.accuracy)
 
-    def objective_function(g: NasGraph):
-        return -raw_accuracy(g)
+    # def objective_function(g: NasGraph):
+    #     return -raw_accuracy(g)
 
     input_channels = _get_image_channels_num(color_mode)
 
@@ -167,9 +167,10 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     dataset_path = project_root() / "cases/mnist"
 
+    eager = True
     if dataset_cls is [EuroSAT, ]:
         dataset_train, dataset_test = random_split(
-            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, eager=True,
+            EuroSAT(root=dataset_path, transform=transform, target_transform=one_hot_encode, eager=eager,
                     cache_before_transform=True),
             [.7, .3]
         )
@@ -182,10 +183,10 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
         assert num_classes == len(dataset_train.classes)
     elif dataset_cls in [CachedMNIST, CachedFashionMNIST]:
         dataset_train = dataset_cls(root=dataset_path, train=True, transform=transform, target_transform=one_hot_encode,
-                                    eager=True,
+                                    eager=eager,
                                     cache_before_transform=False)
         dataset_test = dataset_cls(root=dataset_path, train=False, transform=transform, target_transform=one_hot_encode,
-                                   eager=True,
+                                   eager=eager,
                                    cache_before_transform=False)
         assert num_classes == len(dataset_train.classes)
 
@@ -261,7 +262,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model_trainer = ModelConstructor(model_class=NASTorchModel, trainer=NeuralSearchModel,
                                      device=device,
-                                     loss_function=CrossEntropyLoss(), optimizer=AdamW)
+                                     loss_function=CrossEntropyLoss(), optimizer=AdamW, metrics=[accuracy_score])
 
     basic_graph_time = get_time_from_graph(generate_basic_kkan(input_channels, 5),
                                            [image_side_size, image_side_size, input_channels],
