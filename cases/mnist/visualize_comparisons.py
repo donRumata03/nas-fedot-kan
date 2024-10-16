@@ -30,7 +30,8 @@ dataset_results_dir = {
         "cnn": r"C:\dev\aim\nas_kan_results\_results\cnn-much-epochs-mnist",
         "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\cnn-kan-much-epochs-mnist",
         "cnn-kan-smaller": r"C:\dev\aim\nas_kan_results\_results\mnist-kan-cnn-smaller",
-        "dense-kan": r"C:\dev\aim\nas_kan_results\_results\dense-kan-mnist"
+        "dense-kan": r"C:\dev\aim\nas_kan_results\_results\dense-kan-mnist",
+        "accuracy-evolution-cnn": r"C:\dev\aim\nas_kan_results\_results\accuracy-evolution-cnn-mnist"
     },
     "FashionMNIST": {
         # Less iterations:
@@ -43,6 +44,7 @@ dataset_results_dir = {
         "cnn": r"C:\dev\aim\nas_kan_results\_results\cnn-fashion-mnist-much-epochs",
         "cnn-kan": r"C:\dev\aim\nas_kan_results\_results\kan-cnn-fashion-mnist-more-epochs",
         "dense-kan": r"C:\dev\aim\nas_kan_results\_results\dense-kans-fashion",
+        "accuracy-evolution-cnn": r"C:\dev\aim\nas_kan_results\_results\accuracy-evolution-cnn-fashion-mnist"
     },
     "EuroSAT": {
         # "kan": r"C:\dev\aim\nas_kan_results\_results\eurosat-kan",
