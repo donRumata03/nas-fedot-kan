@@ -1,4 +1,6 @@
 # Credits to: https://github.com/detkov/Convolution-From-Scratch/
+from copy import deepcopy
+
 import torch
 import numpy as np
 from typing import List, Tuple, Union
@@ -129,6 +131,58 @@ def deep_conv_kan_conv2d(matrix,  # but as torch tensors. Kernel side asume q el
 
     featuremap_shaped = transformed.permute(0, 3, 1, 2)  # (batch_size, out_channels, h_out, w_out)
     return featuremap_shaped
+
+
+class LinearKernel:
+    """
+    A wrapper around convolution without bias parameter
+    """
+    def __init__(self, in_channels, out_channels, kernel_side):
+        self.conv = torch.nn.Linear(in_channels * kernel_side * kernel_side, out_channels, bias=False)
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_side = kernel_side
+
+    def flipped(self):
+        """
+        Flips along h and w axes
+        """
+        res = deepcopy(self)
+        shaped = res.kernel_structured()
+        flipped = torch.flip(shaped, [1, 2])
+        res.conv.weight.data = flipped.reshape(res.out_channels, res.in_channels * res.kernel_side * res.kernel_side)
+        return res
+
+    def kernel_structured(self):
+        t = self.conv.weight.data
+        return t.reshape(self.in_channels * self.out_channels, self.kernel_side, self.kernel_side)
+
+    def torch_structured(self):
+        return self.conv.weight.data.reshape(self.out_channels, self.in_channels, self.kernel_side,
+                                             self.kernel_side).transpose(0, 1)# .transpose(2, 3)
+
+    @staticmethod
+    def random_kernel(in_channels, out_channels, kernel_side):
+        kernel = LinearKernel(in_channels, out_channels, kernel_side)
+        kernel.conv.weight.data = torch.rand(out_channels, in_channels * kernel_side * kernel_side)
+        return kernel
+
+
+def transposed_kan_conv2d(matrix,  # but as torch tensors. Kernel side asume q el kernel es cuadrado
+                          kernel,
+                          kernel_side,
+                          device="cuda"
+                          ) -> torch.Tensor:
+    """Makes a 2D convolution with the kernel over matrix using defined stride, dilation and padding along axes.
+
+    Args:
+        matrix (batch_size, colors, n, m]): 2D matrix to be convolved.
+        kernel  (KAN_CrossConvolution | LinearKernel): in×out channels of 2D odd-shaped matrices (e.g. 3x3, 5x5, 13x9, etc.).
+
+    Returns:
+        np.ndarray: 2D Feature map, i.e. matrix after convolution.
+    """
+    return deep_conv_kan_conv2d(matrix, kernel, kernel_side, padding=(kernel_side - 1, kernel_side - 1), device=device)
 
 
 def add_padding(matrix: np.ndarray,
