@@ -133,9 +133,9 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
     batch_size = 16
     epochs = 30
     optimization_epochs = 10
-    num_of_generations = 6
-    initial_population_size = 5
-    max_population_size = 5
+    num_of_generations = 7
+    initial_population_size = 8
+    max_population_size = 8
     color_mode = 'grayscale'
 
     history_path_instead_of_evolution = None  # For evolution
@@ -244,7 +244,7 @@ def build_mnist_cls(save_path, dataset_cls, conv_is_kan=False, linear_is_kan=Fal
 
     requirements = nas_requirements.NNComposerRequirements(opt_epochs=optimization_epochs,
                                                            model_requirements=model_requirements,
-                                                           timeout=datetime.timedelta(hours=3.),
+                                                           timeout=datetime.timedelta(hours=12.),
                                                            num_of_generations=num_of_generations,
                                                            early_stopping_iterations=None,
                                                            early_stopping_timeout=10000000000000000000000000000000000.,
